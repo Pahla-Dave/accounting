@@ -1,0 +1,2301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Physio-Books</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700&family=Work+Sans:wght@300;400;500;600&display=swap');
+        :root {
+            --primary-dark: #1a2332;
+            --primary-navy: #2c3e5a;
+            --accent-gold: #d4a574;
+            --accent-amber: #f4a261;
+            --bg-light: #f8f9fa;
+            --bg-card: #ffffff;
+            --text-primary: #1a2332;
+            --text-secondary: #6c757d;
+            --border-color: #e0e5eb;
+            --success: #28a745;
+            --success-green: #28a745;
+            --danger: #dc3545;
+            --warning: #ffc107;
+            --info: #17a2b8;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: "Work Sans", sans-serif; background: var(--bg-light); color: var(--text-primary); overflow-x: hidden; }
+        body.sidebar-open-mobile { overflow: hidden; }
+        .login-container { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-navy) 100%); position: relative; overflow: hidden; }
+        .login-container::before { content: ""; position: absolute; width: 200%; height: 200%; background: radial-gradient(circle at 30% 50%, rgba(212,165,116,0.1) 0%, transparent 50%); animation: pulse 15s ease-in-out infinite; }
+        @keyframes pulse { 0%, 100% { transform: translate(0,0) scale(1); } 50% { transform: translate(-10%,-10%) scale(1.1); } }
+        .login-card { background: var(--bg-card); padding: 3rem; border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); width: 100%; max-width: 420px; position: relative; z-index: 1; animation: slideUp 0.6s ease-out; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        .logo { font-family: "Crimson Pro", serif; font-size: 2.5rem; font-weight: 700; color: var(--primary-dark); margin-bottom: 0.5rem; letter-spacing: -0.02em; }
+        .logo-accent { color: var(--accent-gold); }
+        .login-subtitle { color: var(--text-secondary); margin-bottom: 2rem; font-size: 0.95rem; }
+        .form-group { margin-bottom: 1.5rem; }
+        .form-group label { display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.9rem; color: var(--text-primary); }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 0.875rem 1rem; border: 2px solid var(--border-color); border-radius: 8px; font-size: 0.95rem; font-family: "Work Sans", sans-serif; transition: all 0.3s ease; background: white; }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: var(--accent-gold); box-shadow: 0 0 0 3px rgba(212,165,116,0.1); }
+        .btn-primary-login { width: 100%; padding: 1rem; background: linear-gradient(135deg, var(--primary-navy) 0%, var(--primary-dark) 100%); color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; margin-top: 0.5rem; }
+        .btn-primary-login:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(26,35,50,0.3); }
+        .mfa-container { display: none; min-height: 100vh; align-items: center; justify-content: center; background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-navy) 100%); position: relative; overflow: hidden; }
+        .mfa-container::before { content: ""; position: absolute; width: 200%; height: 200%; background: radial-gradient(circle at 30% 50%, rgba(212,165,116,0.1) 0%, transparent 50%); animation: pulse 15s ease-in-out infinite; }
+        .mfa-card { background: var(--bg-card); padding: 3rem; border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); width: 100%; max-width: 500px; position: relative; z-index: 1; animation: slideUp 0.6s ease-out; }
+        .mfa-header { text-align: center; margin-bottom: 2rem; }
+        .mfa-title { font-family: "Crimson Pro", serif; font-size: 1.75rem; font-weight: 700; color: var(--primary-dark); margin-bottom: 0.5rem; }
+        .mfa-description { color: var(--text-secondary); font-size: 0.9rem; }
+        .qr-code-container { text-align: center; padding: 2rem; background: var(--bg-light); border-radius: 12px; margin-bottom: 1.5rem; }
+        #qrcode { display: inline-block; margin-bottom: 1rem; }
+        .secret-key { font-family: "Courier New", monospace; font-size: 0.9rem; padding: 0.75rem; background: white; border: 2px dashed var(--border-color); border-radius: 6px; margin-top: 1rem; word-break: break-all; }
+        .backup-codes { background: var(--bg-light); padding: 1.5rem; border-radius: 12px; margin: 1.5rem 0; }
+        .backup-codes-title { font-weight: 600; margin-bottom: 1rem; color: var(--primary-dark); }
+        .backup-codes-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+        .backup-code { font-family: "Courier New", monospace; font-size: 0.85rem; padding: 0.5rem; background: white; border: 1px solid var(--border-color); border-radius: 4px; text-align: center; }
+        .alert { padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; font-size: 0.9rem; }
+        .alert-warning { background: rgba(255,193,7,0.15); border: 1px solid var(--warning); color: #856404; }
+        .alert-info { background: rgba(23,162,184,0.15); border: 1px solid var(--info); color: #0c5460; }
+        .alert-success { background: rgba(40,167,69,0.15); border: 1px solid var(--success); color: #155724; }
+        .alert-danger { background: rgba(220,53,69,0.15); border: 1px solid var(--danger); color: #721c24; }
+        .mfa-code-input { text-align: center; font-size: 1.5rem; letter-spacing: 0.5rem; font-family: "Courier New", monospace; font-weight: 600; }
+        .back-link { text-align: center; margin-top: 1rem; }
+        .back-link a { color: var(--text-secondary); text-decoration: none; font-size: 0.9rem; transition: color 0.2s; }
+        .back-link a:hover { color: var(--primary-dark); }
+        .security-badge { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; background: rgba(40,167,69,0.15); color: var(--success); border-radius: 20px; font-size: 0.85rem; font-weight: 600; margin-bottom: 1rem; }
+        .app-container { display: none; min-height: 100vh; }
+        .app-header { background: var(--bg-card); border-bottom: 1px solid var(--border-color); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 100; }
+        .header-left { display: flex; align-items: center; gap: 1.5rem; }
+        .menu-toggle { display: none; flex-direction: column; gap: 5px; background: none; border: none; cursor: pointer; padding: 0.5rem; transition: all 0.3s ease; border-radius: 6px; }
+        .menu-toggle:hover { background: var(--bg-light); }
+        .menu-toggle span { width: 25px; height: 3px; background: var(--primary-dark); border-radius: 3px; transition: all 0.3s ease; }
+        .menu-toggle.active span:nth-child(1) { transform: rotate(45deg) translate(7px,7px); }
+        .menu-toggle.active span:nth-child(2) { opacity: 0; }
+        .menu-toggle.active span:nth-child(3) { transform: rotate(-45deg) translate(7px,-7px); }
+        .header-logo { font-family: "Crimson Pro", serif; font-size: 1.75rem; font-weight: 700; color: var(--primary-dark); }
+        .header-user { display: flex; align-items: center; gap: 1.5rem; }
+        .user-info { text-align: right; }
+        .user-name { font-weight: 600; font-size: 0.9rem; }
+        .user-role { font-size: 0.8rem; color: var(--text-secondary); }
+        .btn-logout { padding: 0.5rem 1.25rem; background: transparent; border: 2px solid var(--primary-navy); color: var(--primary-navy); border-radius: 6px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; font-size: 0.9rem; }
+        .btn-logout:hover { background: var(--primary-navy); color: white; }
+        .app-body { display: flex; position: relative; }
+        .sidebar-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 98; cursor: pointer; }
+        .sidebar-overlay.active { display: block; }
+        .sidebar { width: 280px; background: var(--bg-card); border-right: 1px solid var(--border-color); min-height: calc(100vh - 73px); padding: 2rem 0; transition: transform 0.3s ease; position: relative; z-index: 99; overflow-y: auto; }
+        .nav-section { margin-bottom: 2rem; }
+        .nav-section-title { padding: 0 1.5rem; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-secondary); margin-bottom: 0.75rem; }
+        .nav-item { padding: 0.875rem 1.5rem; cursor: pointer; transition: all 0.2s ease; border-left: 3px solid transparent; color: var(--text-primary); font-weight: 500; user-select: none; }
+        .nav-item:hover { background: var(--bg-light); border-left-color: var(--accent-gold); }
+        .nav-item.active { background: linear-gradient(90deg,rgba(212,165,116,0.1) 0%,transparent 100%); border-left-color: var(--accent-gold); color: var(--primary-navy); font-weight: 600; }
+        .main-content { flex: 1; padding: 2.5rem; max-width: 1400px; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
+        .page-header { margin-bottom: 2rem; animation: fadeIn 0.5s ease-out; display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem; }
+        .page-header-text h1 { font-family: "Crimson Pro", serif; font-size: 2.25rem; font-weight: 700; color: var(--primary-dark); margin-bottom: 0.5rem; }
+        .page-title { font-family: "Crimson Pro", serif; font-size: 2.25rem; font-weight: 700; color: var(--primary-dark); margin-bottom: 0.5rem; }
+        .page-subtitle { color: var(--text-secondary); font-size: 1rem; }
+        .card { background: var(--bg-card); border-radius: 12px; padding: 2rem; margin-bottom: 2rem; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border: 1px solid var(--border-color); animation: slideIn 0.5s ease-out; }
+        .card-title { font-family: "Crimson Pro", serif; font-size: 1.5rem; font-weight: 600; margin-bottom: 1.5rem; color: var(--primary-dark); }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(200px,1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+        .stat-card { background: var(--bg-card); border-radius: 12px; padding: 1.75rem; border: 1px solid var(--border-color); transition: all 0.3s ease; position: relative; overflow: hidden; }
+        .stat-card::before { content: ""; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: var(--accent-gold); transform: scaleY(0); transition: transform 0.3s ease; }
+        .stat-card:hover { transform: translateY(-4px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
+        .stat-card:hover::before { transform: scaleY(1); }
+        .stat-label { font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.5rem; font-weight: 500; }
+        .stat-value { font-family: "Crimson Pro", serif; font-size: 2rem; font-weight: 700; color: var(--primary-dark); }
+        .stat-change { font-size: 0.85rem; margin-top: 0.5rem; }
+        .stat-change.positive { color: var(--success); }
+        .stat-change.negative { color: var(--danger); }
+        .table-container { overflow-x: auto; margin-top: 1rem; }
+        table { width: 100%; border-collapse: collapse; }
+        thead { background: var(--bg-light); }
+        th { padding: 1rem; text-align: left; font-weight: 600; font-size: 0.875rem; color: var(--text-primary); border-bottom: 2px solid var(--border-color); white-space: nowrap; }
+        td { padding: 1rem; border-bottom: 1px solid var(--border-color); font-size: 0.9rem; }
+        tbody tr { transition: background 0.2s ease; }
+        tbody tr:hover { background: var(--bg-light); }
+        .btn { padding: 0.625rem 1.25rem; border-radius: 6px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; border: none; font-size: 0.9rem; font-family: "Work Sans", sans-serif; display: inline-block; }
+        .btn-secondary { background: var(--bg-light); color: var(--text-primary); border: 1px solid var(--border-color); }
+        .btn-secondary:hover { background: var(--border-color); }
+        .btn-success { background: var(--success); color: white; }
+        .btn-success:hover { background: #218838; }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-danger:hover { background: #c82333; }
+        .btn-primary { background: var(--primary-navy); color: white; }
+        .btn-primary:hover { background: var(--primary-dark); }
+        .btn-warning { background: var(--warning); color: var(--primary-dark); }
+        .btn-sm { padding: 0.4rem 0.875rem; font-size: 0.825rem; }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        .badge { display: inline-block; padding: 0.35rem 0.75rem; border-radius: 20px; font-size: 0.8rem; font-weight: 600; }
+        .badge-success { background: rgba(40,167,69,0.15); color: var(--success); }
+        .badge-warning { background: rgba(255,193,7,0.15); color: #d39e00; }
+        .badge-danger { background: rgba(220,53,69,0.15); color: var(--danger); }
+        .badge-info { background: rgba(23,162,184,0.15); color: var(--info); }
+        .form-row { display: grid; grid-template-columns: repeat(auto-fit,minmax(200px,1fr)); gap: 1.5rem; margin-bottom: 0.5rem; }
+        .action-buttons { display: flex; gap: 1rem; margin-top: 2rem; flex-wrap: wrap; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; }
+        .modal-content { background: var(--bg-card); border-radius: 12px; padding: 2.5rem; max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto; animation: slideUp 0.3s ease-out; position: relative; }
+        .modal-content.large { max-width: 900px; }
+        .modal-header { margin-bottom: 1.5rem; }
+        .modal-title { font-family: "Crimson Pro", serif; font-size: 1.75rem; font-weight: 600; color: var(--primary-dark); }
+        .close-modal { float: right; font-size: 1.5rem; cursor: pointer; color: var(--text-secondary); transition: color 0.2s; background: none; border: none; }
+        .close-modal:hover { color: var(--text-primary); }
+        .report-section { margin-bottom: 2.5rem; }
+        .report-header { background: linear-gradient(135deg,var(--primary-dark) 0%,var(--primary-navy) 100%); color: white; padding: 2rem; border-radius: 12px 12px 0 0; margin: -2rem -2rem 2rem -2rem; }
+        .report-title { font-family: "Crimson Pro", serif; font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem; }
+        .report-period { opacity: 0.9; font-size: 0.95rem; }
+        .report-table { margin-bottom: 2rem; width: 100%; border-collapse: collapse; }
+        .report-table th { background: var(--primary-dark); color: white; padding: 0.875rem 1rem; text-align: left; }
+        .report-table td { padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-color); }
+        .report-total td { font-weight: 700; background: var(--bg-light); font-size: 1.05rem; }
+        .amount { text-align: right; font-family: "Crimson Pro", serif; font-weight: 600; }
+        .amount-positive { color: var(--success); }
+        .amount-negative { color: var(--danger); }
+        .scan-upload-area { display: flex; gap: 0.5rem; margin-top: 0.5rem; flex-wrap: wrap; }
+        .scan-preview-area { display: grid; grid-template-columns: repeat(auto-fill,minmax(150px,1fr)); gap: 1rem; margin-top: 1rem; }
+        .scan-preview-item { position: relative; border: 2px solid var(--border-color); border-radius: 8px; overflow: hidden; background: var(--bg-light); padding: 0.5rem; }
+        .scan-preview-item img { width: 100%; height: 150px; object-fit: cover; border-radius: 4px; }
+        .scan-preview-item.pdf, .scan-preview-item.word, .scan-preview-item.excel, .scan-preview-item.ppt { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 150px; }
+        .scan-preview-item.pdf::before { content: "📄"; font-size: 3rem; margin-bottom: 0.5rem; }
+        .scan-preview-item.word::before { content: "📝"; font-size: 3rem; margin-bottom: 0.5rem; }
+        .scan-preview-item.excel::before { content: "📊"; font-size: 3rem; margin-bottom: 0.5rem; }
+        .scan-preview-item.ppt::before { content: "📋"; font-size: 3rem; margin-bottom: 0.5rem; }
+        .scan-preview-name { font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.5rem; text-align: center; word-break: break-all; }
+        .scan-remove-btn { position: absolute; top: 0.5rem; right: 0.5rem; background: var(--danger); color: white; border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; font-size: 1rem; line-height: 1; display: flex; align-items: center; justify-content: center; }
+        .scans-viewer-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(250px,1fr)); gap: 1.5rem; margin-top: 1rem; }
+        .scan-viewer-item { border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden; background: var(--bg-light); }
+        .scan-viewer-item img { width: 100%; height: 250px; object-fit: contain; background: white; cursor: pointer; }
+        .scan-viewer-item.pdf, .scan-viewer-item.word, .scan-viewer-item.excel, .scan-viewer-item.ppt { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 200px; }
+        .scan-viewer-item.pdf::before { content: "📄"; font-size: 4rem; }
+        .scan-viewer-item.word::before { content: "📝"; font-size: 4rem; }
+        .scan-viewer-item.excel::before { content: "📊"; font-size: 4rem; }
+        .scan-viewer-item.ppt::before { content: "📋"; font-size: 4rem; }
+        .scan-viewer-actions { padding: 0.75rem; display: flex; gap: 0.5rem; justify-content: space-between; align-items: center; }
+        .scan-viewer-filename { font-size: 0.85rem; color: var(--text-secondary); word-break: break-all; }
+        .scan-download-btn { padding: 0.35rem 0.75rem; background: var(--primary-navy); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.8rem; white-space: nowrap; }
+        .no-scans-message { text-align: center; padding: 3rem; color: var(--text-secondary); }
+        .perm-matrix { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+        .perm-matrix th { background: var(--primary-dark); color: white; padding: 0.75rem 1rem; text-align: center; }
+        .perm-matrix th:first-child { text-align: left; }
+        .perm-matrix td { padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-color); text-align: center; }
+        .perm-matrix td:first-child { text-align: left; font-weight: 500; }
+        .perm-check { color: var(--success); font-size: 1.2rem; }
+        .perm-cross { color: var(--danger); font-size: 1.2rem; }
+        .perm-toggle { width: 20px; height: 20px; cursor: pointer; }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 1px; background: var(--border-color); border-radius: 8px; overflow: hidden; }
+        .calendar-day-header { background: var(--primary-dark); color: white; padding: 1rem; text-align: center; font-weight: 600; font-size: 0.9rem; }
+        .calendar-day { background: var(--bg-card); min-height: 100px; padding: 0.5rem; cursor: pointer; position: relative; }
+        .calendar-day:hover { background: var(--bg-light); }
+        .calendar-day.other-month { background: var(--bg-light); opacity: 0.5; }
+        .calendar-day.today { border: 2px solid var(--accent-gold); }
+        .calendar-day-number { font-weight: 600; margin-bottom: 0.25rem; }
+        .calendar-events { display: flex; flex-direction: column; gap: 2px; }
+        .calendar-event-item { background: var(--primary-navy); color: white; padding: 0.2rem 0.4rem; border-radius: 3px; font-size: 0.7rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
+        .calendar-event-item.event-payment { background: var(--danger); }
+        .calendar-event-item.event-reminder { background: var(--warning); color: #333; }
+        .calendar-event-item.event-meeting { background: var(--info); }
+        .google-sync-status { display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1rem; background: rgba(40,167,69,0.1); border-radius: 8px; }
+        .google-sync-status.disconnected { background: rgba(108,117,125,0.1); }
+        .sync-indicator { width: 10px; height: 10px; border-radius: 50%; background: var(--success); }
+        .sync-indicator.disconnected { background: var(--text-secondary); }
+        .upcoming-event { border-left: 4px solid var(--primary-navy); padding: 0.75rem 1rem; background: var(--bg-light); border-radius: 4px; cursor: pointer; margin-bottom: 0.75rem; }
+        .upcoming-event.event-payment { border-left-color: var(--danger); }
+        .upcoming-event.event-reminder { border-left-color: var(--warning); }
+        .upcoming-event.event-meeting { border-left-color: var(--info); }
+
+        /* =====================================================
+           RESPONSIVE SYSTEM — 4 breakpoints
+           xl: >1280 | lg: 1024–1280 | md: 768–1024 | sm: <768 | xs: <480
+        ===================================================== */
+
+        /* --- Tablet / Small Laptop (≤1024px) --- */
+        @media (max-width: 1024px) {
+            .menu-toggle { display: flex; }
+            .sidebar {
+                position: fixed;
+                top: 0; left: 0;
+                width: 280px;
+                height: 100vh;
+                transform: translateX(-100%);
+                box-shadow: 4px 0 20px rgba(0,0,0,0.15);
+                z-index: 200;
+                padding-top: 5rem;
+                transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
+            }
+            .sidebar.active { transform: translateX(0); }
+            .sidebar-overlay { z-index: 199; }
+            .main-content { width: 100%; padding: 2rem 1.5rem; }
+            .user-info { display: none; }
+            .app-header { padding: 1rem 1.25rem; }
+            .header-logo { font-size: 1.5rem; }
+            /* Two-col dashboard grids collapse to single col */
+            div[style*="grid-template-columns:1fr 1fr"] {
+                display: grid !important;
+                grid-template-columns: 1fr !important;
+            }
+            div[style*="grid-template-columns:repeat(3,1fr)"] {
+                display: grid !important;
+                grid-template-columns: 1fr 1fr !important;
+            }
+            .perm-matrix th:nth-child(2),
+            .perm-matrix td:nth-child(2) { display: none; }
+        }
+
+        /* --- Mobile (≤768px) --- */
+        @media (max-width: 768px) {
+            /* Layout */
+            .main-content { padding: 1rem 0.875rem; }
+            .card { padding: 1.25rem; margin-bottom: 1.25rem; }
+            .card-title { font-size: 1.25rem; margin-bottom: 1rem; }
+
+            /* Typography */
+            .page-title { font-size: 1.6rem; }
+            .page-subtitle { font-size: 0.875rem; }
+            .stat-value { font-size: 1.6rem; }
+
+            /* Stats grid */
+            .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 0.75rem; margin-bottom: 1.25rem; }
+            .stat-card { padding: 1rem; }
+
+            /* Forms */
+            .form-row { grid-template-columns: 1fr; gap: 0; }
+            .form-group { margin-bottom: 1rem; }
+            .form-group input,
+            .form-group select,
+            .form-group textarea { padding: 0.75rem 0.875rem; font-size: 1rem; }
+            .action-buttons { flex-direction: column; gap: 0.625rem; }
+            .action-buttons .btn { width: 100%; justify-content: center; }
+
+            /* Page header stacks vertically */
+            .page-header { flex-direction: column; align-items: flex-start; gap: 0.75rem; }
+            .page-header > .btn,
+            .page-header > button { width: 100%; text-align: center; }
+
+            /* Tables — scrollable with pinned first col */
+            .table-container { overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 8px; }
+            table { min-width: 520px; }
+            th, td { padding: 0.6rem 0.75rem; font-size: 0.82rem; }
+
+            /* Modals */
+            .modal-content { padding: 1.5rem 1.125rem; width: 95%; max-height: 95vh; border-radius: 10px; }
+            .modal-title { font-size: 1.4rem; }
+
+            /* Login */
+            .login-card { padding: 2rem 1.25rem; max-width: 95%; }
+            .logo { font-size: 2rem; }
+            .mfa-card { padding: 2rem 1.25rem; max-width: 95%; }
+            .backup-codes-grid { grid-template-columns: 1fr; }
+
+            /* Buttons — action buttons in table cells stack */
+            td[style*="white-space:nowrap"] { white-space: normal !important; }
+            td[style*="white-space:nowrap"] .btn { display: block; width: 100%; margin: 0.2rem 0; }
+            td .btn + .btn { margin-left: 0 !important; }
+
+            /* Permission matrix */
+            div[style*="grid-template-columns:repeat(3,1fr)"] {
+                grid-template-columns: 1fr !important;
+            }
+            .perm-matrix { min-width: 440px; }
+
+            /* Calendar */
+            .calendar-day { min-height: 60px; padding: 0.25rem; }
+            .calendar-day-number { font-size: 0.8rem; }
+            .calendar-event-item { font-size: 0.65rem; padding: 0.1rem 0.3rem; }
+            .calendar-day-header { padding: 0.5rem 0.25rem; font-size: 0.75rem; }
+
+            /* Report tables */
+            .report-header { padding: 1.25rem; margin: -1.25rem -1.25rem 1.5rem -1.25rem; }
+            .report-title { font-size: 1.5rem; }
+            .report-table td,
+            .report-table th { padding: 0.5rem 0.75rem; font-size: 0.85rem; }
+
+            /* Alerts */
+            .alert { font-size: 0.85rem; padding: 0.75rem; }
+        }
+
+        /* --- Small Mobile (≤480px) --- */
+        @media (max-width: 480px) {
+            .main-content { padding: 0.875rem 0.625rem; }
+            .app-header { padding: 0.75rem 1rem; }
+            .header-logo { font-size: 1.2rem; }
+            .btn-logout { padding: 0.4rem 0.75rem; font-size: 0.8rem; }
+
+            /* Typography */
+            .page-title { font-size: 1.35rem; }
+            .stat-value { font-size: 1.4rem; }
+            .stat-label { font-size: 0.78rem; }
+
+            /* Stats — single column on very small screens */
+            .stats-grid { grid-template-columns: 1fr; gap: 0.625rem; }
+            .stat-card { padding: 0.875rem; }
+
+            /* Card */
+            .card { padding: 1rem; border-radius: 10px; margin-bottom: 1rem; }
+            .card-title { font-size: 1.1rem; }
+
+            /* Buttons */
+            .btn { padding: 0.5rem 1rem; font-size: 0.85rem; }
+            .btn-sm { padding: 0.35rem 0.6rem; font-size: 0.78rem; }
+
+            /* Modal full-screen on tiny phones */
+            .modal-content { width: 100%; max-width: 100%; max-height: 100vh; border-radius: 14px 14px 0 0; position: fixed; bottom: 0; left: 0; margin: 0; }
+            .modal { align-items: flex-end; }
+
+            /* Login */
+            .login-card, .mfa-card { padding: 1.75rem 1rem; border-radius: 12px; }
+            .logo { font-size: 1.75rem; }
+            .login-subtitle { font-size: 0.85rem; margin-bottom: 1.5rem; }
+            .mfa-title { font-size: 1.4rem; }
+
+            /* Tables: allow horizontal scroll, smaller text */
+            th, td { padding: 0.5rem 0.6rem; font-size: 0.78rem; }
+
+            /* Calendar: just numbers, hide events */
+            .calendar-event-item { display: none; }
+            .calendar-day { min-height: 44px; }
+
+            /* MFA code input */
+            .mfa-code-input { font-size: 1.2rem; letter-spacing: 0.3rem; }
+
+            /* Nav items */
+            .nav-item { padding: 0.75rem 1.25rem; font-size: 0.9rem; }
+            .nav-section-title { font-size: 0.7rem; padding: 0 1.25rem; }
+        }
+
+        /* --- Touch device enhancements --- */
+        @media (hover: none) and (pointer: coarse) {
+            .btn { min-height: 44px; display: inline-flex; align-items: center; justify-content: center; }
+            .btn-sm { min-height: 36px; }
+            .nav-item { min-height: 48px; display: flex; align-items: center; }
+            .form-group input,
+            .form-group select,
+            .form-group textarea { min-height: 48px; font-size: 16px; /* prevents zoom on iOS */ }
+            .modal-content { overflow-y: auto; -webkit-overflow-scrolling: touch; }
+        }
+
+        /* --- Landscape mobile special handling --- */
+        @media (max-width: 768px) and (orientation: landscape) {
+            .login-container { align-items: flex-start; padding: 1rem; }
+            .login-card { max-height: 95vh; overflow-y: auto; }
+            .mfa-card { max-height: 95vh; overflow-y: auto; }
+            .stats-grid { grid-template-columns: repeat(3, 1fr); }
+            .modal-content { max-height: 90vh; }
+        }
+
+        /* --- Print styles --- */
+        @media print {
+            .app-header, .sidebar, .sidebar-overlay, .btn, .menu-toggle { display: none !important; }
+            .main-content { padding: 0; max-width: 100%; }
+            .card { box-shadow: none; border: 1px solid #ddd; break-inside: avoid; }
+            .page-title { font-size: 1.5rem; }
+            body { background: white; }
+        }
+
+        /* ---- Responsive Grid Utilities (used in JS-generated HTML) ---- */
+        .grid-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+        .grid-3col { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+        .grid-perm { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+        @media (max-width: 1024px) {
+            .grid-2col { grid-template-columns: 1fr; }
+            .grid-3col { grid-template-columns: 1fr 1fr; }
+        }
+        @media (max-width: 768px) {
+            .grid-2col, .grid-3col { grid-template-columns: 1fr; }
+            .grid-perm { grid-template-columns: 1fr 1fr; }
+        }
+        @media (max-width: 480px) {
+            .grid-perm { grid-template-columns: 1fr; }
+        }
+
+        /* ---- Table Action Buttons — stack on mobile ---- */
+        @media (max-width: 640px) {
+            .tbl-actions { display: flex; flex-direction: column; gap: 0.25rem; }
+            .tbl-actions .btn { display: block; width: 100%; text-align: center; margin: 0 !important; }
+            .badge { font-size: 0.72rem; padding: 0.25rem 0.5rem; }
+            /* Sidebar wider on small screens */
+            .sidebar { width: min(280px, 88vw); }
+        }
+        /* ---- Sticky table header on mobile for long tables ---- */
+        @media (max-width: 768px) {
+            .table-container thead th {
+                position: sticky; top: 0;
+                background: var(--bg-light);
+                z-index: 1;
+            }
+        }
+        /* ---- Better modal scroll on iOS ---- */
+        .modal-content { -webkit-overflow-scrolling: touch; }
+        /* ---- Prevent horizontal overflow ---- */
+        body { overflow-x: hidden; }
+        .main-content { overflow-x: hidden; }
+        /* ---- Report header text wrapping ---- */
+        @media (max-width: 480px) {
+            .report-title { font-size: 1.2rem; }
+            .amount { font-size: 0.9rem; }
+            .report-table td, .report-table th { padding: 0.4rem 0.5rem; }
+        }
+        /* ---- Nav items better tap target ---- */
+        .nav-item { display: flex; align-items: center; }
+    </style>
+</head><body>
+<!-- Login Page -->
+<div id="loginContainer" class="login-container">
+    <div class="login-card">
+        <h1 class="logo">Physio-<span class="logo-accent">Book</span></h1>
+        <p class="login-subtitle">Enterprise Accounting System</p>
+        <form id="loginForm">
+            <div class="form-group"><label>Username</label><input type="text" id="username" required></div>
+            <div class="form-group"><label>Password</label><input type="password" id="password" required></div>
+            <button type="submit" class="btn-primary-login">Sign In</button>
+        </form>
+    </div>
+</div>
+
+<!-- MFA Setup -->
+<div id="mfaSetupContainer" class="mfa-container">
+    <div class="mfa-card">
+        <div class="mfa-header"><h2 class="mfa-title">Set Up Two-Factor Authentication</h2><p class="mfa-description">Secure your account with an additional layer of protection</p></div>
+        <div class="alert alert-info"><strong>Step 1:</strong> Install an authenticator app like Google Authenticator, Authy, or Microsoft Authenticator.</div>
+        <div class="qr-code-container"><div><strong>Step 2:</strong> Scan this QR code with your authenticator app</div><div id="qrcode"></div><div class="secret-key" id="secretKey"></div></div>
+        <form id="mfaSetupForm">
+            <div class="form-group"><label><strong>Step 3:</strong> Enter the 6-digit code from your app</label><input type="text" id="setupMfaCode" class="mfa-code-input" maxlength="6" pattern="[0-9]{6}" required placeholder="000000"></div>
+            <div class="alert alert-warning"><strong>Save These Backup Codes</strong></div>
+            <div class="backup-codes" id="backupCodesDisplay" style="display:none;"><div class="backup-codes-title">Your Backup Codes:</div><div class="backup-codes-grid" id="backupCodesList"></div></div>
+            <button type="submit" class="btn-primary-login" id="completeMfaSetup">Complete Setup</button>
+        </form>
+    </div>
+</div>
+
+<!-- MFA Verify -->
+<div id="mfaVerifyContainer" class="mfa-container">
+    <div class="mfa-card">
+        <div class="mfa-header"><div class="security-badge">&#128274; Two-Factor Authentication</div><h2 class="mfa-title">Enter Authentication Code</h2><p class="mfa-description">Enter the 6-digit code from your authenticator app</p></div>
+        <form id="mfaVerifyForm">
+            <div class="form-group"><label>Authentication Code</label><input type="text" id="verifyMfaCode" class="mfa-code-input" maxlength="6" required placeholder="000000"></div>
+            <button type="submit" class="btn-primary-login">Verify & Sign In</button>
+            <div class="back-link"><a href="#" onclick="useBackupCode();return false;">Use a backup code instead</a></div>
+            <div class="back-link"><a href="#" onclick="cancelMfaVerification();return false;">&#8592; Back to login</a></div>
+        </form>
+        <div id="backupCodeForm" style="display:none;">
+            <div class="form-group"><label>Enter Backup Code</label><input type="text" id="backupCodeInput" class="mfa-code-input" maxlength="10" required placeholder="XXXX-XXXX"></div>
+            <button class="btn-primary-login" onclick="verifyBackupCode()">Verify Backup Code</button>
+            <div class="back-link"><a href="#" onclick="useAuthenticatorApp();return false;">&#8592; Use authenticator app</a></div>
+        </div>
+    </div>
+</div>
+
+<!-- Main App -->
+<div id="appContainer" class="app-container">
+    <div class="app-header">
+        <div class="header-left">
+            <button class="menu-toggle" id="menuToggle" onclick="toggleSidebar()"><span></span><span></span><span></span></button>
+            <div class="header-logo">Physio-<span class="logo-accent">Book</span></div>
+        </div>
+        <div class="header-user">
+            <div class="user-info"><div class="user-name" id="currentUserName"></div><div class="user-role" id="currentUserRole"></div></div>
+            <button class="btn-logout" onclick="logout()">Logout</button>
+        </div>
+    </div>
+    <div class="app-body">
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+        <div class="sidebar" id="sidebar"></div>
+        <div class="main-content" id="mainContent"></div>
+    </div>
+</div>
+
+<!-- =================== MODALS =================== -->
+
+<!-- Account Modal -->
+<div id="accountModal" class="modal">
+    <div class="modal-content">
+        <button class="close-modal" onclick="closeModal('accountModal')">&times;</button>
+        <div class="modal-header"><h2 class="modal-title">Add Account</h2></div>
+        <form id="accountForm">
+            <div class="form-group"><label>Account Code</label><input type="text" id="accountCode" required></div>
+            <div class="form-group"><label>Account Name</label><input type="text" id="accountName" required></div>
+            <div class="form-group"><label>Account Type</label>
+                <select id="accountType" required><option value="Asset">Asset</option><option value="Liability">Liability</option><option value="Equity">Equity</option><option value="Revenue">Revenue</option><option value="Expense">Expense</option></select>
+            </div>
+            <div class="form-group"><label>Description</label><textarea id="accountDescription" rows="3"></textarea></div>
+            <div class="action-buttons"><button type="submit" class="btn btn-success">Save Account</button><button type="button" class="btn btn-secondary" onclick="closeModal('accountModal')">Cancel</button></div>
+        </form>
+    </div>
+</div>
+
+<!-- Journal Modal -->
+<div id="journalModal" class="modal">
+    <div class="modal-content">
+        <button class="close-modal" onclick="closeModal('journalModal')">&times;</button>
+        <div class="modal-header"><h2 class="modal-title">New Journal Entry</h2></div>
+        <form id="journalForm">
+            <div class="form-group"><label>Date</label><input type="date" id="journalDate" required></div>
+            <div class="form-group"><label>Description</label><input type="text" id="journalDescription" required></div>
+            <div class="form-group"><label>Debit Account</label><select id="debitAccount" required></select></div>
+            <div class="form-group"><label>Credit Account</label><select id="creditAccount" required></select></div>
+            <div class="form-group"><label>Amount</label><input type="number" id="journalAmount" step="0.01" required></div>
+            <div class="action-buttons"><button type="submit" class="btn btn-success">Post Entry</button><button type="button" class="btn btn-secondary" onclick="closeModal('journalModal')">Cancel</button></div>
+        </form>
+    </div>
+</div>
+
+<!-- Invoice Modal -->
+<div id="invoiceModal" class="modal">
+    <div class="modal-content">
+        <button class="close-modal" onclick="closeModal('invoiceModal')">&times;</button>
+        <div class="modal-header"><h2 class="modal-title" id="invoiceModalTitle">Create Invoice</h2></div>
+        <form id="invoiceForm">
+            <input type="hidden" id="editInvoiceId">
+            <div class="form-row">
+                <div class="form-group"><label>Invoice Number</label><input type="text" id="invoiceNumber" required></div>
+                <div class="form-group"><label>Date</label><input type="date" id="invoiceDate" required></div>
+            </div>
+            <div class="form-group"><label>Customer Name</label><input type="text" id="customerName" required></div>
+            <div class="form-group"><label>Description</label><textarea id="invoiceDescription" rows="3" required></textarea></div>
+            <div class="form-row">
+                <div class="form-group"><label>Amount ($)</label><input type="number" id="invoiceAmount" step="0.01" required></div>
+                <div class="form-group"><label>Due Date</label><input type="date" id="invoiceDueDate" required></div>
+            </div>
+            <div class="form-group" id="invoiceStatusGroup" style="display:none;">
+                <label>Status</label>
+                <select id="invoiceStatus"><option value="Pending">Pending</option><option value="Paid">Paid</option><option value="Overdue">Overdue</option></select>
+            </div>
+            <div class="action-buttons">
+                <button type="submit" class="btn btn-success" id="invoiceSubmitBtn">Create Invoice</button>
+                <button type="button" class="btn btn-secondary" onclick="closeModal('invoiceModal')">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Expense Modal -->
+<div id="expenseModal" class="modal">
+    <div class="modal-content">
+        <button class="close-modal" onclick="closeModal('expenseModal')">&times;</button>
+        <div class="modal-header"><h2 class="modal-title" id="expenseModalTitle">Record Expense</h2></div>
+        <form id="expenseForm">
+            <input type="hidden" id="editExpenseId">
+            <div class="form-row">
+                <div class="form-group"><label>Date</label><input type="date" id="expenseDate" required></div>
+                <div class="form-group"><label>Amount ($)</label><input type="number" id="expenseAmount" step="0.01" required></div>
+            </div>
+            <div class="form-row">
+                <div class="form-group"><label>Category</label>
+                    <select id="expenseCategory" required>
+                        <option value="Office Supplies">Office Supplies</option><option value="Utilities">Utilities</option>
+                        <option value="Travel">Travel</option><option value="Marketing">Marketing</option>
+                        <option value="Salaries">Salaries</option><option value="Rent">Rent</option>
+                        <option value="Meals & Entertainment">Meals & Entertainment</option><option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group"><label>Vendor</label><input type="text" id="expenseVendor" required></div>
+            </div>
+            <div class="form-group"><label>Description</label><input type="text" id="expenseDescription" required></div>
+            <div class="action-buttons">
+                <button type="submit" class="btn btn-success" id="expenseSubmitBtn">Record Expense</button>
+                <button type="button" class="btn btn-secondary" onclick="closeModal('expenseModal')">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Accounts Payable Modal -->
+<div id="apModal" class="modal">
+    <div class="modal-content">
+        <button class="close-modal" onclick="closeModal('apModal')">&times;</button>
+        <div class="modal-header"><h2 class="modal-title" id="apModalTitle">Add Payable</h2></div>
+        <form id="apForm">
+            <input type="hidden" id="editApId">
+            <div class="form-row">
+                <div class="form-group"><label>Vendor Name *</label><input type="text" id="apVendor" required placeholder="Vendor / Supplier name"></div>
+                <div class="form-group"><label>Invoice / Bill # *</label><input type="text" id="apInvoiceNumber" required placeholder="BILL-001"></div>
+            </div>
+            <div class="form-group"><label>Description</label><input type="text" id="apDescription" placeholder="What is this bill for?"></div>
+            <div class="form-row">
+                <div class="form-group"><label>Amount ($) *</label><input type="number" id="apAmount" step="0.01" required placeholder="0.00"></div>
+                <div class="form-group"><label>Due Date *</label><input type="date" id="apDueDate" required></div>
+            </div>
+            <div class="form-group"><label>Status</label>
+                <select id="apStatus" required>
+                    <option value="Pending">Pending</option>
+                    <option value="Paid">Paid</option>
+                    <option value="Overdue">Overdue</option>
+                </select>
+            </div>
+            <div class="form-group"><label>Category</label>
+                <select id="apCategory">
+                    <option value="Supplies">Supplies</option><option value="Equipment">Equipment</option>
+                    <option value="Utilities">Utilities</option><option value="Services">Services</option>
+                    <option value="Rent">Rent</option><option value="Other">Other</option>
+                </select>
+            </div>
+            <div class="action-buttons">
+                <button type="submit" class="btn btn-success" id="apSubmitBtn">Add Payable</button>
+                <button type="button" class="btn btn-secondary" onclick="closeModal('apModal')">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Accounts Receivable Modal -->
+<div id="arModal" class="modal">
+    <div class="modal-content">
+        <button class="close-modal" onclick="closeModal('arModal')">&times;</button>
+        <div class="modal-header"><h2 class="modal-title" id="arModalTitle">Add Receivable</h2></div>
+        <form id="arForm">
+            <input type="hidden" id="editArId">
+            <div class="form-row">
+                <div class="form-group"><label>Customer Name *</label><input type="text" id="arCustomer" required placeholder="Customer / Client name"></div>
+                <div class="form-group"><label>Invoice # *</label><input type="text" id="arInvoiceNumber" required placeholder="INV-001"></div>
+            </div>
+            <div class="form-group"><label>Description</label><input type="text" id="arDescription" placeholder="Service or product description"></div>
+            <div class="form-row">
+                <div class="form-group"><label>Amount ($) *</label><input type="number" id="arAmount" step="0.01" required placeholder="0.00"></div>
+                <div class="form-group"><label>Due Date *</label><input type="date" id="arDueDate" required></div>
+            </div>
+            <div class="form-group"><label>Status</label>
+                <select id="arStatus" required>
+                    <option value="Pending">Pending</option>
+                    <option value="Paid">Paid</option>
+                    <option value="Overdue">Overdue</option>
+                </select>
+            </div>
+            <div class="action-buttons">
+                <button type="submit" class="btn btn-success" id="arSubmitBtn">Add Receivable</button>
+                <button type="button" class="btn btn-secondary" onclick="closeModal('arModal')">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Receipt Modal -->
+<div id="receiptModal" class="modal">
+    <div class="modal-content">
+        <button class="close-modal" onclick="closeModal('receiptModal')">&times;</button>
+        <div class="modal-header"><h2 class="modal-title" id="receiptModalTitle">Add Receipt</h2></div>
+        <form id="receiptForm">
+            <input type="hidden" id="editReceiptId">
+            <div class="form-row">
+                <div class="form-group"><label>Date</label><input type="date" id="receiptDate" required></div>
+                <div class="form-group"><label>Amount ($)</label><input type="number" id="receiptAmount" step="0.01" required></div>
+            </div>
+            <div class="form-group"><label>Vendor</label><input type="text" id="receiptVendor" required></div>
+            <div class="form-group"><label>Category</label>
+                <select id="receiptCategory" required>
+                    <option value="Office Supplies">Office Supplies</option><option value="Utilities">Utilities</option>
+                    <option value="Travel">Travel</option><option value="Marketing">Marketing</option>
+                    <option value="Meals & Entertainment">Meals & Entertainment</option><option value="Other">Other</option>
+                </select>
+            </div>
+            <div class="form-group"><label>Description</label><input type="text" id="receiptDescription" required></div>
+            <div class="action-buttons">
+                <button type="submit" class="btn btn-success" id="receiptSubmitBtn">Save Receipt</button>
+                <button type="button" class="btn btn-secondary" onclick="closeModal('receiptModal')">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- View Scans Modal -->
+<div id="viewScansModal" class="modal">
+    <div class="modal-content large">
+        <button class="close-modal" onclick="closeModal('viewScansModal')">&times;</button>
+        <div class="modal-header"><h2 class="modal-title" id="viewScansTitle">Documents</h2></div>
+        <div id="scansViewerContent"></div>
+    </div>
+</div>
+
+<!-- Contact Modal -->
+<div id="contactModal" class="modal">
+    <div class="modal-content">
+        <button class="close-modal" onclick="closeModal('contactModal')">&times;</button>
+        <div class="modal-header"><h2 class="modal-title" id="contactModalTitle">Add Contact</h2></div>
+        <form id="contactForm">
+            <input type="hidden" id="editContactId">
+            <div class="form-row">
+                <div class="form-group"><label>Full Name *</label><input type="text" id="contactName" required></div>
+                <div class="form-group"><label>Company</label><input type="text" id="contactCompany"></div>
+            </div>
+            <div class="form-row">
+                <div class="form-group"><label>Contact Type</label>
+                    <select id="contactType" required>
+                        <option value="Customer">Customer</option><option value="Vendor">Vendor</option>
+                        <option value="Both">Both</option><option value="Partner">Partner</option>
+                        <option value="Employee">Employee</option><option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group"><label>Email *</label><input type="email" id="contactEmail" required></div>
+            </div>
+            <div class="form-row">
+                <div class="form-group"><label>Phone</label><input type="tel" id="contactPhone"></div>
+                <div class="form-group"><label>Mobile</label><input type="tel" id="contactMobile"></div>
+            </div>
+            <div class="form-group"><label>Address</label><textarea id="contactAddress" rows="2"></textarea></div>
+            <div class="form-group"><label>Notes</label><textarea id="contactNotes" rows="2"></textarea></div>
+            <div class="action-buttons">
+                <button type="submit" class="btn btn-success" id="contactSubmitBtn">Add Contact</button>
+                <button type="button" class="btn btn-secondary" onclick="closeModal('contactModal')">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Calendar Event Modal -->
+<div id="calendarEventModal" class="modal">
+    <div class="modal-content">
+        <button class="close-modal" onclick="closeModal('calendarEventModal')">&times;</button>
+        <div class="modal-header"><h2 class="modal-title" id="eventModalTitle">Create Event</h2></div>
+        <form id="calendarEventForm">
+            <input type="hidden" id="eventId">
+            <div class="form-group"><label>Event Type</label>
+                <select id="eventType" required onchange="updateEventTypeFields()">
+                    <option value="meeting">Meeting</option><option value="payment">Payment Due</option>
+                    <option value="reminder">Reminder</option><option value="other">Other</option>
+                </select>
+            </div>
+            <div class="form-group"><label>Title</label><input type="text" id="eventTitle" required></div>
+            <div class="form-row">
+                <div class="form-group"><label>Date</label><input type="date" id="eventDate" required></div>
+                <div class="form-group"><label>Time</label><input type="time" id="eventTime" required></div>
+            </div>
+            <div class="form-group" id="eventDurationGroup"><label>Duration (minutes)</label>
+                <select id="eventDuration"><option value="15">15 min</option><option value="30" selected>30 min</option><option value="60">1 hour</option><option value="90">1.5 hours</option><option value="120">2 hours</option></select>
+            </div>
+            <div class="form-group" id="eventAmountGroup" style="display:none;"><label>Amount ($)</label><input type="number" id="eventAmount" step="0.01"></div>
+            <div class="form-group"><label>Description</label><textarea id="eventDescription" rows="3"></textarea></div>
+            <div class="action-buttons">
+                <button type="submit" class="btn btn-success">Save Event</button>
+                <button type="button" class="btn btn-secondary" onclick="closeModal('calendarEventModal')">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- User Modal -->
+<div id="userModal" class="modal">
+    <div class="modal-content">
+        <button class="close-modal" onclick="closeModal('userModal')">&times;</button>
+        <div class="modal-header"><h2 class="modal-title" id="userModalTitle">Create New User</h2></div>
+        <form id="userForm">
+            <input type="hidden" id="editUserId">
+            <div class="form-group"><label>Full Name</label><input type="text" id="userName" required></div>
+            <div class="form-row">
+                <div class="form-group"><label>Username</label><input type="text" id="userUsername" required></div>
+                <div class="form-group"><label>Password</label><input type="password" id="userPassword" required minlength="4"></div>
+            </div>
+            <div class="form-group"><label>Role</label>
+                <select id="userRole" required>
+                    <option value="Viewer">Viewer - Read only</option>
+                    <option value="Accountant">Accountant - Transactions</option>
+                    <option value="Administrator">Administrator - Full access</option>
+                </select>
+            </div>
+            <div class="action-buttons">
+                <button type="submit" class="btn btn-success">Create User</button>
+                <button type="button" class="btn btn-secondary" onclick="closeModal('userModal')">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Edit Role Modal -->
+<div id="editRoleModal" class="modal">
+    <div class="modal-content">
+        <button class="close-modal" onclick="closeModal('editRoleModal')">&times;</button>
+        <div class="modal-header"><h2 class="modal-title">Edit User Role</h2></div>
+        <form id="editRoleForm">
+            <input type="hidden" id="editRoleUserId">
+            <div class="form-group"><label>User</label><input type="text" id="editRoleUserName" readonly style="background:var(--bg-light);"></div>
+            <div class="form-group"><label>New Role</label>
+                <select id="editRoleNewRole" required>
+                    <option value="Viewer">Viewer</option><option value="Accountant">Accountant</option><option value="Administrator">Administrator</option>
+                </select>
+            </div>
+            <div class="alert alert-warning"><strong>Warning:</strong> Role changes take effect immediately.</div>
+            <div class="action-buttons">
+                <button type="submit" class="btn btn-success">Update Role</button>
+                <button type="button" class="btn btn-secondary" onclick="closeModal('editRoleModal')">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Role Permission Modal -->
+<div id="rolePermModal" class="modal">
+    <div class="modal-content">
+        <button class="close-modal" onclick="closeModal('rolePermModal')">&times;</button>
+        <div class="modal-header"><h2 class="modal-title" id="rolePermModalTitle">Add Permission</h2></div>
+        <form id="rolePermForm">
+            <input type="hidden" id="editPermId">
+            <div class="form-group"><label>Permission Name *</label><input type="text" id="permName" required placeholder="e.g. View Reports"></div>
+            <div class="form-group"><label>Description</label><input type="text" id="permDescription" placeholder="Brief description of this permission"></div>
+            <div style="margin: 1rem 0 0.5rem; font-weight:600;">Role Access</div>
+            <div class="grid-perm">
+                <label style="display:flex;align-items:center;gap:0.5rem;"><input type="checkbox" id="permAdmin" checked> Administrator</label>
+                <label style="display:flex;align-items:center;gap:0.5rem;"><input type="checkbox" id="permAccountant"> Accountant</label>
+                <label style="display:flex;align-items:center;gap:0.5rem;"><input type="checkbox" id="permViewer"> Viewer</label>
+            </div>
+            <div class="action-buttons">
+                <button type="submit" class="btn btn-success" id="rolePermSubmitBtn">Add Permission</button>
+                <button type="button" class="btn btn-secondary" onclick="closeModal('rolePermModal')">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/otpauth/9.1.4/otpauth.umd.min.js"></script>
+<script>
+let currentUser = null;
+let pendingMfaUser = null;
+let currentTOTP = null;
+
+// ==================== DATA INIT ====================
+function initializeData() {
+    if (!localStorage.getItem('physiobookData')) {
+        const defaultPerms = [
+            { id: 1, name: 'View Dashboard & Reports', description: 'Access dashboard, P&L, balance sheet, cash flow', admin: true, accountant: true, viewer: true },
+            { id: 2, name: 'Create & Edit Invoices', description: 'Add, edit, and manage customer invoices', admin: true, accountant: true, viewer: false },
+            { id: 3, name: 'Delete Invoices', description: 'Permanently delete invoices', admin: true, accountant: true, viewer: false },
+            { id: 4, name: 'Manage Accounts Payable', description: 'Add, edit, delete vendor bills', admin: true, accountant: true, viewer: false },
+            { id: 5, name: 'Manage Accounts Receivable', description: 'Add, edit, delete customer receivables', admin: true, accountant: true, viewer: false },
+            { id: 6, name: 'Manage Receipts', description: 'Add, edit, delete receipts', admin: true, accountant: true, viewer: false },
+            { id: 7, name: 'Manage Expenses', description: 'Add, edit, delete expense records', admin: true, accountant: true, viewer: false },
+            { id: 8, name: 'Manage Contacts', description: 'Add, edit, delete contacts', admin: true, accountant: true, viewer: false },
+            { id: 9, name: 'User Management', description: 'Create, edit, delete system users', admin: true, accountant: false, viewer: false },
+            { id: 10, name: 'Role Permissions', description: 'View and modify role permission settings', admin: true, accountant: false, viewer: false },
+            { id: 11, name: 'Chart of Accounts', description: 'Add new accounts to the chart', admin: true, accountant: true, viewer: false },
+            { id: 12, name: 'Journal Entries', description: 'Post journal entries', admin: true, accountant: true, viewer: false },
+            { id: 13, name: 'Calendar Management', description: 'Create and edit calendar events', admin: true, accountant: true, viewer: false },
+        ];
+        const defaultData = {
+            users: [
+                { id: 1, username: 'admin', password: 'admin', name: 'Nelson Pahla', role: 'Administrator', mfaEnabled: false, mfaSecret: null, backupCodes: [] },
+                { id: 2, username: 'accountant', password: 'accountant', name: 'Sarah Johnson', role: 'Accountant', mfaEnabled: false, mfaSecret: null, backupCodes: [] },
+                { id: 3, username: 'viewer', password: 'viewer', name: 'Mike Viewer', role: 'Viewer', mfaEnabled: false, mfaSecret: null, backupCodes: [] }
+            ],
+            rolePermissions: defaultPerms,
+            accounts: [
+                { id: 1, code: '1000', name: 'Cash', type: 'Asset', balance: 50000, description: 'Cash on hand and in bank' },
+                { id: 2, code: '1100', name: 'Accounts Receivable', type: 'Asset', balance: 25000, description: 'Money owed by customers' },
+                { id: 3, code: '1200', name: 'Inventory', type: 'Asset', balance: 35000, description: 'Products in stock' },
+                { id: 4, code: '1500', name: 'Equipment', type: 'Asset', balance: 75000, description: 'Office equipment' },
+                { id: 5, code: '2000', name: 'Accounts Payable', type: 'Liability', balance: 18000, description: 'Money owed to vendors' },
+                { id: 6, code: '2100', name: 'Loans Payable', type: 'Liability', balance: 40000, description: 'Outstanding loans' },
+                { id: 7, code: '3000', name: 'Owner Equity', type: 'Equity', balance: 100000, description: 'Owner investment' },
+                { id: 8, code: '4000', name: 'Sales Revenue', type: 'Revenue', balance: 0, description: 'Income from sales' },
+                { id: 9, code: '5000', name: 'Cost of Goods Sold', type: 'Expense', balance: 0, description: 'Direct costs' },
+                { id: 10, code: '5100', name: 'Salaries Expense', type: 'Expense', balance: 0, description: 'Employee salaries' },
+                { id: 11, code: '5200', name: 'Rent Expense', type: 'Expense', balance: 0, description: 'Office rent' },
+                { id: 12, code: '5300', name: 'Utilities Expense', type: 'Expense', balance: 0, description: 'Electricity, water, internet' }
+            ],
+            journalEntries: [
+                { id: 1, date: '2024-01-15', description: 'Initial capital investment', debitAccount: 'Cash', creditAccount: 'Owner Equity', amount: 50000 },
+                { id: 2, date: '2024-01-20', description: 'Purchase inventory', debitAccount: 'Inventory', creditAccount: 'Cash', amount: 20000 },
+                { id: 3, date: '2024-02-01', description: 'Sales revenue', debitAccount: 'Cash', creditAccount: 'Sales Revenue', amount: 35000 }
+            ],
+            invoices: [
+                { id: 1, number: 'INV-001', date: '2024-02-01', customer: 'ABC Corporation', description: 'Consulting services', amount: 15000, dueDate: '2024-03-01', status: 'Paid', scans: [] },
+                { id: 2, number: 'INV-002', date: '2024-02-10', customer: 'XYZ Industries', description: 'Software development', amount: 25000, dueDate: '2024-03-10', status: 'Pending', scans: [] },
+                { id: 3, number: 'INV-003', date: '2024-02-15', customer: 'Tech Solutions Ltd', description: 'System maintenance', amount: 8500, dueDate: '2024-03-15', status: 'Overdue', scans: [] }
+            ],
+            accountsReceivable: [
+                { id: 1, customer: 'XYZ Industries', invoiceNumber: 'INV-002', description: 'Software development', amount: 25000, dueDate: '2024-03-10', status: 'Pending' },
+                { id: 2, customer: 'Tech Solutions Ltd', invoiceNumber: 'INV-003', description: 'System maintenance', amount: 8500, dueDate: '2024-03-15', status: 'Overdue' }
+            ],
+            accountsPayable: [
+                { id: 1, vendor: 'Office Supplies Co', invoiceNumber: 'BILL-445', description: 'Office stationery', amount: 3500, dueDate: '2024-02-28', status: 'Pending', category: 'Supplies' },
+                { id: 2, vendor: 'Tech Equipment Inc', invoiceNumber: 'BILL-892', description: 'Laptop purchase', amount: 12000, dueDate: '2024-03-05', status: 'Pending', category: 'Equipment' },
+                { id: 3, vendor: 'Cloud Services LLC', invoiceNumber: 'BILL-223', description: 'Monthly hosting', amount: 2500, dueDate: '2024-02-20', status: 'Overdue', category: 'Services' }
+            ],
+            expenses: [
+                { id: 1, date: '2024-02-01', category: 'Salaries', vendor: 'Payroll', description: 'Monthly salaries', amount: 25000, attachments: [] },
+                { id: 2, date: '2024-02-05', category: 'Rent', vendor: 'Property Management', description: 'Office rent - February', amount: 8000, attachments: [] },
+                { id: 3, date: '2024-02-10', category: 'Utilities', vendor: 'Electric Company', description: 'Electricity bill', amount: 1200, attachments: [] },
+                { id: 4, date: '2024-02-12', category: 'Marketing', vendor: 'AdWords', description: 'Online advertising', amount: 3500, attachments: [] }
+            ],
+            receipts: [
+                { id: 1, date: '2024-02-03', vendor: 'Staples', category: 'Office Supplies', description: 'Printer paper and pens', amount: 450, scans: [] },
+                { id: 2, date: '2024-02-08', vendor: 'Uber Eats', category: 'Meals & Entertainment', description: 'Team lunch', amount: 230, scans: [] }
+            ],
+            contacts: [
+                { id: 1, name: 'John Smith', email: 'contact@abccorp.com', phone: '555-0100', mobile: '555-0101', type: 'Customer', address: '123 Business St, New York, NY', company: 'ABC Corporation', notes: 'Primary contact' },
+                { id: 2, name: 'Sarah Johnson', email: 'billing@xyzind.com', phone: '555-0200', mobile: '', type: 'Customer', address: '456 Commerce Ave, Los Angeles, CA', company: 'XYZ Industries', notes: 'Net 30 payment terms' },
+                { id: 3, name: 'Mike Davis', email: 'sales@officesupplies.com', phone: '555-0300', mobile: '', type: 'Vendor', address: '789 Supply Rd, Chicago, IL', company: 'Office Supplies Co', notes: 'Preferred vendor' }
+            ],
+            calendarEvents: []
+        };
+        localStorage.setItem('physiobookData', JSON.stringify(defaultData));
+    }
+}
+
+function getData() { return JSON.parse(localStorage.getItem('physiobookData')); }
+function saveData(data) { localStorage.setItem('physiobookData', JSON.stringify(data)); }
+
+// ==================== AUTH & MFA ====================
+function generateSecret() { return new OTPAuth.Secret({ size: 20 }).base32; }
+function generateBackupCodes() {
+    const codes = [];
+    for (let i = 0; i < 8; i++) codes.push(Math.random().toString(36).substr(2,4).toUpperCase() + '-' + Math.random().toString(36).substr(2,4).toUpperCase());
+    return codes;
+}
+
+function showMfaSetup(user) {
+    const secret = generateSecret();
+    const backupCodes = generateBackupCodes();
+    pendingMfaUser = { ...user, mfaSecret: secret, backupCodes };
+    currentTOTP = new OTPAuth.TOTP({ issuer: 'Physio-Book', label: user.username, algorithm: 'SHA1', digits: 6, period: 30, secret });
+    document.getElementById('qrcode').innerHTML = '';
+    new QRCode(document.getElementById('qrcode'), { text: currentTOTP.toString(), width: 180, height: 180 });
+    document.getElementById('secretKey').textContent = secret;
+    document.getElementById('loginContainer').style.display = 'none';
+    document.getElementById('mfaSetupContainer').style.display = 'flex';
+}
+
+document.getElementById('mfaSetupForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const code = document.getElementById('setupMfaCode').value;
+    const delta = currentTOTP.validate({ token: code, window: 1 });
+    if (delta !== null) {
+        const list = document.getElementById('backupCodesList');
+        list.innerHTML = pendingMfaUser.backupCodes.map(c => `<div class="backup-code">${c}</div>`).join('');
+        document.getElementById('backupCodesDisplay').style.display = 'block';
+        document.getElementById('completeMfaSetup').textContent = 'I Have Saved My Backup Codes';
+        document.getElementById('completeMfaSetup').onclick = function(e) { e.preventDefault(); completeMfaSetup(); };
+    } else { alert('Invalid code. Please try again.'); }
+});
+
+function completeMfaSetup() {
+    const data = getData();
+    const idx = data.users.findIndex(u => u.id === pendingMfaUser.id);
+    if (idx !== -1) {
+        data.users[idx].mfaEnabled = true;
+        data.users[idx].mfaSecret = pendingMfaUser.mfaSecret;
+        data.users[idx].backupCodes = pendingMfaUser.backupCodes;
+        saveData(data);
+        loginSuccess(data.users[idx]);
+        alert('Two-factor authentication enabled!');
+    }
+}
+
+function showMfaVerification(user) {
+    pendingMfaUser = user;
+    currentTOTP = new OTPAuth.TOTP({ issuer: 'Physio-Book', label: user.username, algorithm: 'SHA1', digits: 6, period: 30, secret: user.mfaSecret });
+    document.getElementById('loginContainer').style.display = 'none';
+    document.getElementById('mfaVerifyContainer').style.display = 'flex';
+}
+
+document.getElementById('mfaVerifyForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const code = document.getElementById('verifyMfaCode').value;
+    if (currentTOTP.validate({ token: code, window: 1 }) !== null) loginSuccess(pendingMfaUser);
+    else { alert('Invalid authentication code.'); document.getElementById('verifyMfaCode').value = ''; }
+});
+
+function useBackupCode() { document.getElementById('mfaVerifyForm').style.display = 'none'; document.getElementById('backupCodeForm').style.display = 'block'; }
+function useAuthenticatorApp() { document.getElementById('backupCodeForm').style.display = 'none'; document.getElementById('mfaVerifyForm').style.display = 'block'; }
+
+function verifyBackupCode() {
+    const code = document.getElementById('backupCodeInput').value.toUpperCase();
+    const data = getData();
+    const idx = data.users.findIndex(u => u.id === pendingMfaUser.id);
+    if (idx !== -1) {
+        const ci = data.users[idx].backupCodes.indexOf(code);
+        if (ci !== -1) { data.users[idx].backupCodes.splice(ci, 1); saveData(data); loginSuccess(data.users[idx]); }
+        else { alert('Invalid backup code.'); }
+    }
+}
+
+function cancelMfaVerification() {
+    document.getElementById('mfaVerifyContainer').style.display = 'none';
+    document.getElementById('loginContainer').style.display = 'flex';
+    document.getElementById('verifyMfaCode').value = '';
+    document.getElementById('mfaVerifyForm').style.display = 'block';
+    document.getElementById('backupCodeForm').style.display = 'none';
+    pendingMfaUser = null;
+}
+
+function loginSuccess(user) {
+    currentUser = user;
+    document.getElementById('currentUserName').textContent = user.name;
+    document.getElementById('currentUserRole').textContent = user.role;
+    document.getElementById('mfaVerifyContainer').style.display = 'none';
+    document.getElementById('mfaSetupContainer').style.display = 'none';
+    document.getElementById('loginContainer').style.display = 'none';
+    document.getElementById('appContainer').style.display = 'block';
+    buildNavigation();
+    showPage(user.role === 'Viewer' ? 'chartOfAccounts' : 'dashboard');
+}
+
+document.getElementById('loginForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
+    const data = getData();
+    const user = data.users.find(u => u.username === username && u.password === password);
+    if (user) {
+        if (user.mfaEnabled) showMfaVerification(user);
+        else if (confirm('Enable Two-Factor Authentication for enhanced security?')) showMfaSetup(user);
+        else loginSuccess(user);
+    } else { alert('Invalid credentials. Please try again.'); }
+});
+
+function logout() {
+    currentUser = null; pendingMfaUser = null; currentTOTP = null;
+    document.getElementById('appContainer').style.display = 'none';
+    document.getElementById('loginContainer').style.display = 'flex';
+    document.getElementById('loginForm').reset();
+}
+
+// ==================== NAVIGATION ====================
+function canEdit() { return currentUser.role === 'Administrator' || currentUser.role === 'Accountant'; }
+
+function buildNavigation() {
+    let nav = '';
+    if (currentUser.role === 'Viewer') {
+        nav = `<div class="nav-section"><div class="nav-section-title">General Ledger</div>
+            <div class="nav-item" onclick="showPage('chartOfAccounts')">Chart of Accounts</div>
+            <div class="nav-item" onclick="showPage('journalEntries')">Journal Entries</div></div>
+            <div class="nav-section"><div class="nav-section-title">Reports</div>
+            <div class="nav-item" onclick="showPage('profitLoss')">Profit & Loss</div>
+            <div class="nav-item" onclick="showPage('balanceSheet')">Balance Sheet</div>
+            <div class="nav-item" onclick="showPage('cashFlow')">Cash Flow</div></div>
+            <div class="nav-section"><div class="nav-section-title">Account</div>
+            <div class="nav-item" onclick="showPage('security')">Security Settings</div></div>`;
+    } else {
+        nav = `<div class="nav-section"><div class="nav-section-title">Overview</div>
+            <div class="nav-item active" onclick="showPage('dashboard')">&#128200; Dashboard</div></div>
+            <div class="nav-section"><div class="nav-section-title">General Ledger</div>
+            <div class="nav-item" onclick="showPage('chartOfAccounts')">Chart of Accounts</div>
+            <div class="nav-item" onclick="showPage('journalEntries')">Journal Entries</div></div>
+            <div class="nav-section"><div class="nav-section-title">Transactions</div>
+            <div class="nav-item" onclick="showPage('invoices')">&#128203; Invoices</div>
+            <div class="nav-item" onclick="showPage('accountsReceivable')">&#128181; Accounts Receivable</div>
+            <div class="nav-item" onclick="showPage('accountsPayable')">&#128184; Accounts Payable</div>
+            <div class="nav-item" onclick="showPage('expenses')">&#128176; Expense Tracking</div>
+            <div class="nav-item" onclick="showPage('receipts')">&#129534; Receipts</div></div>
+            <div class="nav-section"><div class="nav-section-title">Reports</div>
+            <div class="nav-item" onclick="showPage('profitLoss')">Profit & Loss</div>
+            <div class="nav-item" onclick="showPage('balanceSheet')">Balance Sheet</div>
+            <div class="nav-item" onclick="showPage('cashFlow')">Cash Flow</div></div>
+            <div class="nav-section"><div class="nav-section-title">Planning</div>
+            <div class="nav-item" onclick="showPage('calendar')">&#128197; Calendar</div></div>
+            <div class="nav-section"><div class="nav-section-title">Administration</div>
+            <div class="nav-item" onclick="showPage('contacts')">&#128100; Contacts</div>
+            ${currentUser.role === 'Administrator' ? '<div class="nav-item" onclick="showPage(\'users\')">&#128101; User Management</div><div class="nav-item" onclick="showPage(\'rolePermissions\')">&#128274; Role Permissions</div>' : ''}
+            <div class="nav-item" onclick="showPage('security')">Security Settings</div></div>`;
+    }
+    document.getElementById('sidebar').innerHTML = nav;
+}
+
+function toggleSidebar() {
+    const sb = document.getElementById('sidebar');
+    const ov = document.getElementById('sidebarOverlay');
+    const mt = document.getElementById('menuToggle');
+    const isOpen = sb.classList.contains('active');
+    if (isOpen) {
+        sb.classList.remove('active'); ov.classList.remove('active'); mt.classList.remove('active');
+        document.body.style.overflow = '';
+    } else {
+        sb.classList.add('active'); ov.classList.add('active'); mt.classList.add('active');
+        if (window.innerWidth <= 1024) document.body.style.overflow = 'hidden';
+    }
+}
+function closeSidebar() {
+    document.getElementById('sidebar').classList.remove('active');
+    document.getElementById('sidebarOverlay').classList.remove('active');
+    document.getElementById('menuToggle').classList.remove('active');
+    document.body.style.overflow = '';
+}
+
+function showPage(pageName) {
+    if (window.innerWidth <= 1024) closeSidebar();
+    window.scrollTo({top: 0, behavior: "smooth"});
+    document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+    if (event && event.target && event.target.classList.contains('nav-item')) event.target.classList.add('active');
+    const pages = { dashboard: loadDashboard, chartOfAccounts: loadChartOfAccounts, journalEntries: loadJournalEntries, invoices: loadInvoices, accountsReceivable: loadAccountsReceivable, accountsPayable: loadAccountsPayable, expenses: loadExpenses, profitLoss: loadProfitLoss, balanceSheet: loadBalanceSheet, cashFlow: loadCashFlow, calendar: loadCalendar, contacts: loadContacts, receipts: loadReceipts, users: loadUsers, rolePermissions: loadRolePermissions, security: loadSecuritySettings };
+    if (pages[pageName]) pages[pageName]();
+}
+
+// ==================== HELPERS ====================
+function fmt(n) { return '$' + (n||0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+function today() { return new Date().toISOString().split('T')[0]; }
+function getBadgeColor(type) { return { Customer:'success', Vendor:'warning', Both:'info', Partner:'info', Employee:'info', Paid:'success', Pending:'warning', Overdue:'danger' }[type] || 'info'; }
+
+// ==================== REPORT CALCULATIONS (from transactions) ====================
+function calcRevenue(data) {
+    // Revenue = paid invoices + paid AR
+    const paidInvoices = data.invoices.filter(i => i.status === 'Paid').reduce((s,i) => s+i.amount, 0);
+    const paidAR = data.accountsReceivable.filter(a => a.status === 'Paid').reduce((s,a) => s+a.amount, 0);
+    // Avoid double counting if AR was auto-created from invoice
+    const arInvoiceNums = new Set(data.accountsReceivable.filter(a => a.status === 'Paid').map(a => a.invoiceNumber));
+    const invNotInAR = data.invoices.filter(i => i.status === 'Paid' && !arInvoiceNums.has(i.number)).reduce((s,i) => s+i.amount, 0);
+    return paidAR + invNotInAR;
+}
+function calcTotalExpenses(data) {
+    const expTotal = data.expenses.reduce((s,e) => s+e.amount, 0);
+    const receiptTotal = data.receipts.reduce((s,r) => s+r.amount, 0);
+    const paidAP = data.accountsPayable.filter(a => a.status === 'Paid').reduce((s,a) => s+a.amount, 0);
+    return expTotal + receiptTotal + paidAP;
+}
+function calcOutstandingAR(data) { return data.accountsReceivable.filter(a => a.status !== 'Paid').reduce((s,a) => s+a.amount, 0); }
+function calcOutstandingAP(data) { return data.accountsPayable.filter(a => a.status !== 'Paid').reduce((s,a) => s+a.amount, 0); }
+function calcCashBalance(data) {
+    const cashIn = calcRevenue(data);
+    const cashOut = calcTotalExpenses(data);
+    const baseEquity = 100000; // owner equity baseline
+    return baseEquity + cashIn - cashOut;
+}
+
+// ==================== DASHBOARD ====================
+function loadDashboard() {
+    const data = getData();
+    const revenue = calcRevenue(data);
+    const expenses = calcTotalExpenses(data);
+    const net = revenue - expenses;
+    const outstandingAR = calcOutstandingAR(data);
+    const outstandingAP = calcOutstandingAP(data);
+    const overdueAR = data.accountsReceivable.filter(a => a.status === 'Overdue').length;
+    const overdueAP = data.accountsPayable.filter(a => a.status === 'Overdue').length;
+
+    document.getElementById('mainContent').innerHTML = `
+        <div class="page-header"><div><h1 class="page-title">&#128200; Dashboard</h1><p class="page-subtitle">Live financial overview calculated from your transactions</p></div></div>
+        <div class="stats-grid">
+            <div class="stat-card"><div class="stat-label">Total Revenue (YTD)</div><div class="stat-value">${fmt(revenue)}</div><div class="stat-change positive">From paid invoices & receivables</div></div>
+            <div class="stat-card"><div class="stat-label">Total Expenses (YTD)</div><div class="stat-value">${fmt(expenses)}</div><div class="stat-change negative">Expenses + Receipts + Paid AP</div></div>
+            <div class="stat-card"><div class="stat-label">Net Income</div><div class="stat-value" style="color:${net>=0?'var(--success)':'var(--danger)'};">${fmt(net)}</div><div class="stat-change ${net>=0?'positive':'negative'}">${revenue>0?(net/revenue*100).toFixed(1):0}% margin</div></div>
+            <div class="stat-card"><div class="stat-label">Outstanding AR</div><div class="stat-value">${fmt(outstandingAR)}</div><div class="stat-change ${overdueAR>0?'negative':''}">${overdueAR} overdue items</div></div>
+            <div class="stat-card"><div class="stat-label">Outstanding AP</div><div class="stat-value">${fmt(outstandingAP)}</div><div class="stat-change ${overdueAP>0?'negative':''}">${overdueAP} overdue bills</div></div>
+            <div class="stat-card"><div class="stat-label">Est. Cash Balance</div><div class="stat-value">${fmt(calcCashBalance(data))}</div><div class="stat-change">After all transactions</div></div>
+        </div>
+        <div class="grid-2col">
+            <div class="card"><h2 class="card-title">Recent Invoices</h2>
+                <table><thead><tr><th>Invoice</th><th>Customer</th><th>Amount</th><th>Status</th></tr></thead>
+                <tbody>${data.invoices.slice(-5).reverse().map(i => `<tr>
+                    <td>${i.number}</td><td>${i.customer}</td>
+                    <td class="amount">${fmt(i.amount)}</td>
+                    <td><span class="badge badge-${getBadgeColor(i.status)}">${i.status}</span></td></tr>`).join('')}</tbody></table></div>
+            <div class="card"><h2 class="card-title">Recent Expenses</h2>
+                <table><thead><tr><th>Date</th><th>Category</th><th>Vendor</th><th>Amount</th></tr></thead>
+                <tbody>${data.expenses.slice(-5).reverse().map(e => `<tr>
+                    <td>${e.date}</td><td>${e.category}</td><td>${e.vendor}</td>
+                    <td class="amount">${fmt(e.amount)}</td></tr>`).join('')}</tbody></table></div>
+        </div>
+        <div class="grid-2col">
+            <div class="card"><h2 class="card-title">Expense Breakdown</h2>
+                ${buildExpenseBreakdown(data)}</div>
+            <div class="card"><h2 class="card-title">Overdue Items</h2>
+                ${buildOverdueWidget(data)}</div>
+        </div>`;
+}
+
+function buildExpenseBreakdown(data) {
+    const cats = {};
+    data.expenses.forEach(e => { cats[e.category] = (cats[e.category]||0) + e.amount; });
+    data.receipts.forEach(r => { cats[r.category] = (cats[r.category]||0) + r.amount; });
+    data.accountsPayable.filter(a => a.status === 'Paid').forEach(a => { cats[a.category||'Other'] = (cats[a.category||'Other']||0) + a.amount; });
+    const total = Object.values(cats).reduce((s,v) => s+v, 0);
+    return `<table><tbody>${Object.entries(cats).sort((a,b)=>b[1]-a[1]).map(([k,v]) => `<tr>
+        <td>${k}</td>
+        <td><div style="background:var(--bg-light);border-radius:4px;overflow:hidden;"><div style="background:var(--accent-gold);height:8px;width:${total>0?(v/total*100).toFixed(0):0}%;"></div></div></td>
+        <td class="amount">${fmt(v)}</td></tr>`).join('')}</tbody></table>`;
+}
+
+function buildOverdueWidget(data) {
+    const overdueAR = data.accountsReceivable.filter(a => a.status === 'Overdue');
+    const overdueAP = data.accountsPayable.filter(a => a.status === 'Overdue');
+    if (!overdueAR.length && !overdueAP.length) return '<p style="color:var(--success);text-align:center;padding:2rem;">&#10003; No overdue items!</p>';
+    return `
+        ${overdueAR.length ? `<div style="margin-bottom:1rem;"><div style="font-weight:600;color:var(--danger);margin-bottom:0.5rem;">Overdue Receivables</div>${overdueAR.map(a=>`<div style="display:flex;justify-content:space-between;padding:0.5rem;background:rgba(220,53,69,0.05);border-radius:4px;margin-bottom:4px;"><span>${a.customer}</span><strong>${fmt(a.amount)}</strong></div>`).join('')}</div>` : ''}
+        ${overdueAP.length ? `<div><div style="font-weight:600;color:var(--warning);margin-bottom:0.5rem;">Overdue Payables</div>${overdueAP.map(a=>`<div style="display:flex;justify-content:space-between;padding:0.5rem;background:rgba(255,193,7,0.08);border-radius:4px;margin-bottom:4px;"><span>${a.vendor}</span><strong>${fmt(a.amount)}</strong></div>`).join('')}</div>` : ''}`;
+}
+
+// ==================== CHART OF ACCOUNTS ====================
+function loadChartOfAccounts() {
+    const data = getData();
+    const types = ['Asset','Liability','Equity','Revenue','Expense'];
+    document.getElementById('mainContent').innerHTML = `
+        <div class="page-header"><div><h1 class="page-title">Chart of Accounts</h1><p class="page-subtitle">Manage your account structure</p></div>
+        ${canEdit() ? '<button class="btn btn-success" onclick="openAccountModal()">+ Add Account</button>' : ''}</div>
+        ${types.map(type => {
+            const accs = data.accounts.filter(a => a.type === type);
+            return `<div class="card"><h2 class="card-title">${type} Accounts</h2>
+                <div class="table-container"><table>
+                    <thead><tr><th>Code</th><th>Account Name</th><th>Description</th></tr></thead>
+                    <tbody>${accs.map(a => `<tr><td>${a.code}</td><td><strong>${a.name}</strong></td><td>${a.description}</td></tr>`).join('')}</tbody>
+                </table></div></div>`;
+        }).join('')}`;
+}
+
+function openAccountModal() { document.getElementById('accountModal').style.display = 'flex'; document.getElementById('accountForm').reset(); }
+document.getElementById('accountForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const data = getData();
+    data.accounts.push({ id: Date.now(), code: document.getElementById('accountCode').value, name: document.getElementById('accountName').value, type: document.getElementById('accountType').value, balance: 0, description: document.getElementById('accountDescription').value });
+    saveData(data); closeModal('accountModal'); loadChartOfAccounts();
+});
+
+// ==================== JOURNAL ENTRIES ====================
+function loadJournalEntries() {
+    const data = getData();
+    document.getElementById('mainContent').innerHTML = `
+        <div class="page-header"><div><h1 class="page-title">Journal Entries</h1><p class="page-subtitle">Record all accounting transactions</p></div>
+        ${canEdit() ? '<button class="btn btn-success" onclick="openJournalModal()">+ New Entry</button>' : ''}</div>
+        <div class="card"><h2 class="card-title">All Journal Entries</h2>
+            <div class="table-container"><table>
+                <thead><tr><th>Date</th><th>Description</th><th>Debit Account</th><th>Credit Account</th><th>Amount</th></tr></thead>
+                <tbody>${data.journalEntries.map(e => `<tr><td>${e.date}</td><td>${e.description}</td><td>${e.debitAccount}</td><td>${e.creditAccount}</td><td class="amount">${fmt(e.amount)}</td></tr>`).join('')}</tbody>
+            </table></div></div>`;
+}
+
+function openJournalModal() {
+    const data = getData();
+    document.getElementById('journalModal').style.display = 'flex';
+    const opts = data.accounts.map(a => `<option value="${a.name}">${a.code} - ${a.name}</option>`).join('');
+    document.getElementById('debitAccount').innerHTML = opts;
+    document.getElementById('creditAccount').innerHTML = opts;
+    document.getElementById('journalDate').value = today();
+}
+
+document.getElementById('journalForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const data = getData();
+    data.journalEntries.push({ id: Date.now(), date: document.getElementById('journalDate').value, description: document.getElementById('journalDescription').value, debitAccount: document.getElementById('debitAccount').value, creditAccount: document.getElementById('creditAccount').value, amount: parseFloat(document.getElementById('journalAmount').value) });
+    saveData(data); closeModal('journalModal'); loadJournalEntries();
+});
+
+// ==================== INVOICES ====================
+function loadInvoices() {
+    const data = getData();
+    const e = canEdit();
+    document.getElementById('mainContent').innerHTML = `
+        <div class="page-header"><div><h1 class="page-title">&#128203; Invoices</h1><p class="page-subtitle">Create and manage customer invoices</p></div>
+        ${e ? '<button class="btn btn-success" onclick="openInvoiceModal()">+ Create Invoice</button>' : ''}</div>
+        <div class="stats-grid">
+            <div class="stat-card"><div class="stat-label">Total Invoices</div><div class="stat-value">${data.invoices.length}</div></div>
+            <div class="stat-card"><div class="stat-label">Total Value</div><div class="stat-value">${fmt(data.invoices.reduce((s,i)=>s+i.amount,0))}</div></div>
+            <div class="stat-card"><div class="stat-label">Paid</div><div class="stat-value" style="color:var(--success);">${data.invoices.filter(i=>i.status==='Paid').length}</div></div>
+            <div class="stat-card"><div class="stat-label">Pending / Overdue</div><div class="stat-value" style="color:var(--warning);">${data.invoices.filter(i=>i.status!=='Paid').length}</div></div>
+        </div>
+        <div class="card"><h2 class="card-title">All Invoices</h2>
+            <div class="table-container"><table>
+                <thead><tr><th>Invoice #</th><th>Date</th><th>Customer</th><th>Description</th><th>Amount</th><th>Due Date</th><th>Status</th>${e?'<th>Actions</th>':''}</tr></thead>
+                <tbody>${data.invoices.length === 0 ? `<tr><td colspan="${e?8:7}" style="text-align:center;padding:2rem;color:var(--text-secondary);">No invoices yet.</td></tr>` :
+                data.invoices.map(inv => `<tr>
+                    <td><strong>${inv.number}</strong></td><td>${inv.date}</td><td>${inv.customer}</td><td>${inv.description}</td>
+                    <td class="amount">${fmt(inv.amount)}</td><td>${inv.dueDate}</td>
+                    <td><span class="badge badge-${getBadgeColor(inv.status)}">${inv.status}</span></td>
+                    ${e ? `<td class="tbl-actions">
+                        <button class="btn btn-sm btn-secondary" onclick="editInvoice(${inv.id})">&#9999; Edit</button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteInvoice(${inv.id})">&#128465; Delete</button>
+                    </td>` : ''}</tr>`).join('')}
+                </tbody>
+            </table></div></div>`;
+}
+
+function openInvoiceModal() {
+    const data = getData();
+    document.getElementById('invoiceForm').reset();
+    document.getElementById('editInvoiceId').value = '';
+    document.getElementById('invoiceModalTitle').textContent = 'Create Invoice';
+    document.getElementById('invoiceSubmitBtn').textContent = 'Create Invoice';
+    document.getElementById('invoiceStatusGroup').style.display = 'none';
+    document.getElementById('invoiceNumber').value = 'INV-' + String(data.invoices.length + 1).padStart(3,'0');
+    document.getElementById('invoiceDate').value = today();
+    document.getElementById('invoiceModal').style.display = 'flex';
+}
+
+function editInvoice(id) {
+    const inv = getData().invoices.find(i => i.id === id);
+    if (!inv) return;
+    document.getElementById('invoiceModalTitle').textContent = 'Edit Invoice';
+    document.getElementById('invoiceSubmitBtn').textContent = 'Save Changes';
+    document.getElementById('editInvoiceId').value = inv.id;
+    document.getElementById('invoiceNumber').value = inv.number;
+    document.getElementById('invoiceDate').value = inv.date;
+    document.getElementById('customerName').value = inv.customer;
+    document.getElementById('invoiceDescription').value = inv.description;
+    document.getElementById('invoiceAmount').value = inv.amount;
+    document.getElementById('invoiceDueDate').value = inv.dueDate;
+    document.getElementById('invoiceStatusGroup').style.display = 'block';
+    document.getElementById('invoiceStatus').value = inv.status;
+    document.getElementById('invoiceModal').style.display = 'flex';
+}
+
+function deleteInvoice(id) {
+    const data = getData();
+    const inv = data.invoices.find(i => i.id === id);
+    if (!inv) return;
+    if (confirm(`Delete invoice ${inv.number} for ${inv.customer} (${fmt(inv.amount)})?\n\nThis cannot be undone.`)) {
+        data.invoices = data.invoices.filter(i => i.id !== id);
+        data.accountsReceivable = data.accountsReceivable.filter(a => a.invoiceNumber !== inv.number);
+        saveData(data); loadInvoices();
+        alert(`\u2713 Invoice ${inv.number} deleted.`);
+    }
+}
+
+document.getElementById('invoiceForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const data = getData();
+    const invoiceId = document.getElementById('editInvoiceId').value;
+    const inv = {
+        number: document.getElementById('invoiceNumber').value,
+        date: document.getElementById('invoiceDate').value,
+        customer: document.getElementById('customerName').value,
+        description: document.getElementById('invoiceDescription').value,
+        amount: parseFloat(document.getElementById('invoiceAmount').value),
+        dueDate: document.getElementById('invoiceDueDate').value,
+        scans: []
+    };
+    if (invoiceId) {
+        const idx = data.invoices.findIndex(i => i.id == invoiceId);
+        if (idx !== -1) {
+            const oldNum = data.invoices[idx].number;
+            const status = document.getElementById('invoiceStatus').value || data.invoices[idx].status;
+            data.invoices[idx] = { ...data.invoices[idx], ...inv, status };
+            const arIdx = data.accountsReceivable.findIndex(a => a.invoiceNumber === oldNum);
+            if (arIdx !== -1) data.accountsReceivable[arIdx] = { ...data.accountsReceivable[arIdx], invoiceNumber: inv.number, customer: inv.customer, amount: inv.amount, dueDate: inv.dueDate };
+        }
+        alert('\u2713 Invoice updated!');
+    } else {
+        const newId = data.invoices.length > 0 ? Math.max(...data.invoices.map(i=>i.id))+1 : 1;
+        const newInv = { id: newId, status: 'Pending', ...inv };
+        data.invoices.push(newInv);
+        data.accountsReceivable.push({ id: Date.now(), customer: newInv.customer, invoiceNumber: newInv.number, description: newInv.description, amount: newInv.amount, dueDate: newInv.dueDate, status: 'Pending' });
+        alert('\u2713 Invoice created!');
+    }
+    saveData(data); closeModal('invoiceModal'); loadInvoices();
+});
+
+// ==================== ACCOUNTS RECEIVABLE ====================
+function loadAccountsReceivable() {
+    const data = getData();
+    const e = canEdit();
+    const total = data.accountsReceivable.reduce((s,a)=>s+a.amount,0);
+    const outstanding = calcOutstandingAR(data);
+    const paid = data.accountsReceivable.filter(a=>a.status==='Paid').reduce((s,a)=>s+a.amount,0);
+    const overdue = data.accountsReceivable.filter(a=>a.status==='Overdue');
+    document.getElementById('mainContent').innerHTML = `
+        <div class="page-header"><div><h1 class="page-title">&#128181; Accounts Receivable</h1><p class="page-subtitle">Track and manage money owed by customers</p></div>
+        ${e ? '<button class="btn btn-success" onclick="openARModal()">+ Add Receivable</button>' : ''}</div>
+        <div class="stats-grid">
+            <div class="stat-card"><div class="stat-label">Total Receivables</div><div class="stat-value">${fmt(total)}</div></div>
+            <div class="stat-card"><div class="stat-label">Outstanding</div><div class="stat-value" style="color:var(--warning);">${fmt(outstanding)}</div></div>
+            <div class="stat-card"><div class="stat-label">Collected (Paid)</div><div class="stat-value" style="color:var(--success);">${fmt(paid)}</div></div>
+            <div class="stat-card"><div class="stat-label">Overdue Items</div><div class="stat-value" style="color:var(--danger);">${overdue.length}</div><div class="stat-change negative">${fmt(overdue.reduce((s,a)=>s+a.amount,0))} overdue</div></div>
+        </div>
+        <div class="card"><h2 class="card-title">All Receivables</h2>
+            <div class="table-container"><table>
+                <thead><tr><th>Customer</th><th>Invoice #</th><th>Description</th><th>Amount</th><th>Due Date</th><th>Status</th>${e?'<th>Actions</th>':''}</tr></thead>
+                <tbody>${data.accountsReceivable.length === 0 ? `<tr><td colspan="${e?7:6}" style="text-align:center;padding:2rem;color:var(--text-secondary);">No receivables yet.</td></tr>` :
+                data.accountsReceivable.map(ar => `<tr>
+                    <td><strong>${ar.customer}</strong></td><td>${ar.invoiceNumber}</td><td>${ar.description||'—'}</td>
+                    <td class="amount">${fmt(ar.amount)}</td><td>${ar.dueDate}</td>
+                    <td><span class="badge badge-${getBadgeColor(ar.status)}">${ar.status}</span></td>
+                    ${e ? `<td class="tbl-actions">
+                        <button class="btn btn-sm btn-secondary" onclick="editAR(${ar.id})">&#9999; Edit</button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteAR(${ar.id})">&#128465; Delete</button>
+                    </td>` : ''}</tr>`).join('')}
+                </tbody>
+            </table></div></div>`;
+}
+
+function openARModal() {
+    document.getElementById('arForm').reset();
+    document.getElementById('editArId').value = '';
+    document.getElementById('arModalTitle').textContent = 'Add Receivable';
+    document.getElementById('arSubmitBtn').textContent = 'Add Receivable';
+    document.getElementById('arDueDate').value = today();
+    document.getElementById('arModal').style.display = 'flex';
+}
+
+function editAR(id) {
+    const ar = getData().accountsReceivable.find(a => a.id === id);
+    if (!ar) return;
+    document.getElementById('arModalTitle').textContent = 'Edit Receivable';
+    document.getElementById('arSubmitBtn').textContent = 'Save Changes';
+    document.getElementById('editArId').value = ar.id;
+    document.getElementById('arCustomer').value = ar.customer;
+    document.getElementById('arInvoiceNumber').value = ar.invoiceNumber;
+    document.getElementById('arDescription').value = ar.description || '';
+    document.getElementById('arAmount').value = ar.amount;
+    document.getElementById('arDueDate').value = ar.dueDate;
+    document.getElementById('arStatus').value = ar.status;
+    document.getElementById('arModal').style.display = 'flex';
+}
+
+function deleteAR(id) {
+    const data = getData();
+    const ar = data.accountsReceivable.find(a => a.id === id);
+    if (!ar) return;
+    if (confirm(`Delete receivable from ${ar.customer} for ${fmt(ar.amount)}?\n\nThis cannot be undone.`)) {
+        data.accountsReceivable = data.accountsReceivable.filter(a => a.id !== id);
+        saveData(data); loadAccountsReceivable();
+    }
+}
+
+document.getElementById('arForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const data = getData();
+    const arId = document.getElementById('editArId').value;
+    const ar = {
+        customer: document.getElementById('arCustomer').value,
+        invoiceNumber: document.getElementById('arInvoiceNumber').value,
+        description: document.getElementById('arDescription').value,
+        amount: parseFloat(document.getElementById('arAmount').value),
+        dueDate: document.getElementById('arDueDate').value,
+        status: document.getElementById('arStatus').value
+    };
+    if (arId) {
+        const idx = data.accountsReceivable.findIndex(a => a.id == arId);
+        if (idx !== -1) data.accountsReceivable[idx] = { ...data.accountsReceivable[idx], ...ar };
+        alert('\u2713 Receivable updated!');
+    } else {
+        data.accountsReceivable.push({ id: Date.now(), ...ar });
+        alert('\u2713 Receivable added!');
+    }
+    saveData(data); closeModal('arModal'); loadAccountsReceivable();
+});
+
+// ==================== ACCOUNTS PAYABLE ====================
+function loadAccountsPayable() {
+    const data = getData();
+    const e = canEdit();
+    const total = data.accountsPayable.reduce((s,a)=>s+a.amount,0);
+    const outstanding = calcOutstandingAP(data);
+    const paid = data.accountsPayable.filter(a=>a.status==='Paid').reduce((s,a)=>s+a.amount,0);
+    const overdue = data.accountsPayable.filter(a=>a.status==='Overdue');
+    document.getElementById('mainContent').innerHTML = `
+        <div class="page-header"><div><h1 class="page-title">&#128184; Accounts Payable</h1><p class="page-subtitle">Manage vendor bills and payments</p></div>
+        ${e ? '<button class="btn btn-success" onclick="openAPModal()">+ Add Payable</button>' : ''}</div>
+        <div class="stats-grid">
+            <div class="stat-card"><div class="stat-label">Total Payables</div><div class="stat-value">${fmt(total)}</div></div>
+            <div class="stat-card"><div class="stat-label">Outstanding</div><div class="stat-value" style="color:var(--warning);">${fmt(outstanding)}</div></div>
+            <div class="stat-card"><div class="stat-label">Paid to Vendors</div><div class="stat-value" style="color:var(--success);">${fmt(paid)}</div></div>
+            <div class="stat-card"><div class="stat-label">Overdue Bills</div><div class="stat-value" style="color:var(--danger);">${overdue.length}</div><div class="stat-change negative">${fmt(overdue.reduce((s,a)=>s+a.amount,0))} overdue</div></div>
+        </div>
+        <div class="card"><h2 class="card-title">All Payables</h2>
+            <div class="table-container"><table>
+                <thead><tr><th>Vendor</th><th>Bill #</th><th>Description</th><th>Category</th><th>Amount</th><th>Due Date</th><th>Status</th>${e?'<th>Actions</th>':''}</tr></thead>
+                <tbody>${data.accountsPayable.length === 0 ? `<tr><td colspan="${e?8:7}" style="text-align:center;padding:2rem;color:var(--text-secondary);">No payables yet.</td></tr>` :
+                data.accountsPayable.map(ap => `<tr>
+                    <td><strong>${ap.vendor}</strong></td><td>${ap.invoiceNumber}</td><td>${ap.description||'—'}</td>
+                    <td><span class="badge badge-info">${ap.category||'Other'}</span></td>
+                    <td class="amount">${fmt(ap.amount)}</td><td>${ap.dueDate}</td>
+                    <td><span class="badge badge-${getBadgeColor(ap.status)}">${ap.status}</span></td>
+                    ${e ? `<td class="tbl-actions">
+                        <button class="btn btn-sm btn-secondary" onclick="editAP(${ap.id})">&#9999; Edit</button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteAP(${ap.id})">&#128465; Delete</button>
+                    </td>` : ''}</tr>`).join('')}
+                </tbody>
+            </table></div></div>`;
+}
+
+function openAPModal() {
+    document.getElementById('apForm').reset();
+    document.getElementById('editApId').value = '';
+    document.getElementById('apModalTitle').textContent = 'Add Payable';
+    document.getElementById('apSubmitBtn').textContent = 'Add Payable';
+    document.getElementById('apDueDate').value = today();
+    document.getElementById('apModal').style.display = 'flex';
+}
+
+function editAP(id) {
+    const ap = getData().accountsPayable.find(a => a.id === id);
+    if (!ap) return;
+    document.getElementById('apModalTitle').textContent = 'Edit Payable';
+    document.getElementById('apSubmitBtn').textContent = 'Save Changes';
+    document.getElementById('editApId').value = ap.id;
+    document.getElementById('apVendor').value = ap.vendor;
+    document.getElementById('apInvoiceNumber').value = ap.invoiceNumber;
+    document.getElementById('apDescription').value = ap.description || '';
+    document.getElementById('apAmount').value = ap.amount;
+    document.getElementById('apDueDate').value = ap.dueDate;
+    document.getElementById('apStatus').value = ap.status;
+    document.getElementById('apCategory').value = ap.category || 'Other';
+    document.getElementById('apModal').style.display = 'flex';
+}
+
+function deleteAP(id) {
+    const data = getData();
+    const ap = data.accountsPayable.find(a => a.id === id);
+    if (!ap) return;
+    if (confirm(`Delete bill from ${ap.vendor} for ${fmt(ap.amount)}?\n\nThis cannot be undone.`)) {
+        data.accountsPayable = data.accountsPayable.filter(a => a.id !== id);
+        saveData(data); loadAccountsPayable();
+    }
+}
+
+document.getElementById('apForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const data = getData();
+    const apId = document.getElementById('editApId').value;
+    const ap = {
+        vendor: document.getElementById('apVendor').value,
+        invoiceNumber: document.getElementById('apInvoiceNumber').value,
+        description: document.getElementById('apDescription').value,
+        amount: parseFloat(document.getElementById('apAmount').value),
+        dueDate: document.getElementById('apDueDate').value,
+        status: document.getElementById('apStatus').value,
+        category: document.getElementById('apCategory').value
+    };
+    if (apId) {
+        const idx = data.accountsPayable.findIndex(a => a.id == apId);
+        if (idx !== -1) data.accountsPayable[idx] = { ...data.accountsPayable[idx], ...ap };
+        alert('\u2713 Payable updated!');
+    } else {
+        data.accountsPayable.push({ id: Date.now(), ...ap });
+        alert('\u2713 Payable added!');
+    }
+    saveData(data); closeModal('apModal'); loadAccountsPayable();
+});
+
+// ==================== EXPENSES ====================
+function loadExpenses() {
+    const data = getData();
+    const e = canEdit();
+    const total = data.expenses.reduce((s,ex)=>s+ex.amount,0);
+    document.getElementById('mainContent').innerHTML = `
+        <div class="page-header"><div><h1 class="page-title">&#128176; Expense Tracking</h1><p class="page-subtitle">Monitor and categorize business expenses</p></div>
+        ${e ? '<button class="btn btn-success" onclick="openExpenseModal()">+ Record Expense</button>' : ''}</div>
+        <div class="stats-grid">
+            <div class="stat-card"><div class="stat-label">Total Expenses (MTD)</div><div class="stat-value">${fmt(total)}</div></div>
+            <div class="stat-card"><div class="stat-label">Number of Records</div><div class="stat-value">${data.expenses.length}</div></div>
+        </div>
+        <div class="card"><h2 class="card-title">All Expenses</h2>
+            <div class="table-container"><table>
+                <thead><tr><th>Date</th><th>Category</th><th>Vendor</th><th>Description</th><th>Amount</th>${e?'<th>Actions</th>':''}</tr></thead>
+                <tbody>${data.expenses.length === 0 ? `<tr><td colspan="${e?6:5}" style="text-align:center;padding:2rem;color:var(--text-secondary);">No expenses yet.</td></tr>` :
+                data.expenses.map(ex => `<tr>
+                    <td>${ex.date}</td><td><span class="badge badge-info">${ex.category}</span></td>
+                    <td>${ex.vendor}</td><td>${ex.description}</td>
+                    <td class="amount">${fmt(ex.amount)}</td>
+                    ${e ? `<td class="tbl-actions">
+                        <button class="btn btn-sm btn-secondary" onclick="editExpense(${ex.id})">&#9999; Edit</button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteExpense(${ex.id})">&#128465; Delete</button>
+                    </td>` : ''}</tr>`).join('')}
+                </tbody>
+            </table></div></div>`;
+}
+
+function openExpenseModal() {
+    document.getElementById('expenseForm').reset();
+    document.getElementById('editExpenseId').value = '';
+    document.getElementById('expenseModalTitle').textContent = 'Record Expense';
+    document.getElementById('expenseSubmitBtn').textContent = 'Record Expense';
+    document.getElementById('expenseDate').value = today();
+    document.getElementById('expenseModal').style.display = 'flex';
+}
+
+function editExpense(id) {
+    const ex = getData().expenses.find(e => e.id === id);
+    if (!ex) return;
+    document.getElementById('expenseModalTitle').textContent = 'Edit Expense';
+    document.getElementById('expenseSubmitBtn').textContent = 'Save Changes';
+    document.getElementById('editExpenseId').value = ex.id;
+    document.getElementById('expenseDate').value = ex.date;
+    document.getElementById('expenseCategory').value = ex.category;
+    document.getElementById('expenseVendor').value = ex.vendor;
+    document.getElementById('expenseDescription').value = ex.description;
+    document.getElementById('expenseAmount').value = ex.amount;
+    document.getElementById('expenseModal').style.display = 'flex';
+}
+
+function deleteExpense(id) {
+    const data = getData();
+    const ex = data.expenses.find(e => e.id === id);
+    if (!ex) return;
+    if (confirm(`Delete expense: ${ex.description} (${fmt(ex.amount)})?\n\nThis cannot be undone.`)) {
+        data.expenses = data.expenses.filter(e => e.id !== id);
+        saveData(data); loadExpenses();
+    }
+}
+
+document.getElementById('expenseForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const data = getData();
+    const expId = document.getElementById('editExpenseId').value;
+    const ex = {
+        date: document.getElementById('expenseDate').value,
+        category: document.getElementById('expenseCategory').value,
+        vendor: document.getElementById('expenseVendor').value,
+        description: document.getElementById('expenseDescription').value,
+        amount: parseFloat(document.getElementById('expenseAmount').value),
+        attachments: []
+    };
+    if (expId) {
+        const idx = data.expenses.findIndex(e => e.id == expId);
+        if (idx !== -1) data.expenses[idx] = { ...data.expenses[idx], ...ex };
+        alert('\u2713 Expense updated!');
+    } else {
+        data.expenses.push({ id: Date.now(), ...ex });
+        alert('\u2713 Expense recorded!');
+    }
+    saveData(data); closeModal('expenseModal'); loadExpenses();
+});
+
+// ==================== RECEIPTS ====================
+function loadReceipts() {
+    const data = getData();
+    const e = canEdit();
+    const total = data.receipts.reduce((s,r)=>s+r.amount,0);
+    document.getElementById('mainContent').innerHTML = `
+        <div class="page-header"><div><h1 class="page-title">&#129534; Receipts</h1><p class="page-subtitle">Track and manage expense receipts</p></div>
+        ${e ? '<button class="btn btn-success" onclick="openReceiptModal()">+ Add Receipt</button>' : ''}</div>
+        <div class="stats-grid">
+            <div class="stat-card"><div class="stat-label">Total Receipts</div><div class="stat-value">${data.receipts.length}</div></div>
+            <div class="stat-card"><div class="stat-label">Total Amount</div><div class="stat-value">${fmt(total)}</div></div>
+            <div class="stat-card"><div class="stat-label">Impact on Reports</div><div class="stat-value" style="font-size:1rem;padding-top:0.5rem;">Counted in Expenses</div><div class="stat-change">Included in P&amp;L calculations</div></div>
+        </div>
+        <div class="card"><h2 class="card-title">All Receipts</h2>
+            <div class="table-container"><table>
+                <thead><tr><th>Date</th><th>Vendor</th><th>Category</th><th>Description</th><th>Amount</th>${e?'<th>Actions</th>':''}</tr></thead>
+                <tbody>${data.receipts.length === 0 ? `<tr><td colspan="${e?6:5}" style="text-align:center;padding:2rem;color:var(--text-secondary);">No receipts yet.</td></tr>` :
+                data.receipts.map(r => `<tr>
+                    <td>${r.date}</td><td>${r.vendor}</td>
+                    <td><span class="badge badge-info">${r.category}</span></td>
+                    <td>${r.description}</td>
+                    <td class="amount">${fmt(r.amount)}</td>
+                    ${e ? `<td class="tbl-actions">
+                        <button class="btn btn-sm btn-secondary" onclick="editReceipt(${r.id})">&#9999; Edit</button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteReceipt(${r.id})">&#128465; Delete</button>
+                    </td>` : ''}</tr>`).join('')}
+                </tbody>
+            </table></div></div>`;
+}
+
+function openReceiptModal() {
+    document.getElementById('receiptForm').reset();
+    document.getElementById('editReceiptId').value = '';
+    document.getElementById('receiptModalTitle').textContent = 'Add Receipt';
+    document.getElementById('receiptSubmitBtn').textContent = 'Save Receipt';
+    document.getElementById('receiptDate').value = today();
+    document.getElementById('receiptModal').style.display = 'flex';
+}
+
+function editReceipt(id) {
+    const r = getData().receipts.find(r => r.id === id);
+    if (!r) return;
+    document.getElementById('receiptModalTitle').textContent = 'Edit Receipt';
+    document.getElementById('receiptSubmitBtn').textContent = 'Save Changes';
+    document.getElementById('editReceiptId').value = r.id;
+    document.getElementById('receiptDate').value = r.date;
+    document.getElementById('receiptAmount').value = r.amount;
+    document.getElementById('receiptVendor').value = r.vendor;
+    document.getElementById('receiptCategory').value = r.category;
+    document.getElementById('receiptDescription').value = r.description;
+    document.getElementById('receiptModal').style.display = 'flex';
+}
+
+function deleteReceipt(id) {
+    const data = getData();
+    const r = data.receipts.find(r => r.id === id);
+    if (!r) return;
+    if (confirm(`Delete receipt from ${r.vendor} for ${fmt(r.amount)}?\n\nThis cannot be undone.`)) {
+        data.receipts = data.receipts.filter(r => r.id !== id);
+        saveData(data); loadReceipts();
+    }
+}
+
+document.getElementById('receiptForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const data = getData();
+    const rId = document.getElementById('editReceiptId').value;
+    const r = {
+        date: document.getElementById('receiptDate').value,
+        amount: parseFloat(document.getElementById('receiptAmount').value),
+        vendor: document.getElementById('receiptVendor').value,
+        category: document.getElementById('receiptCategory').value,
+        description: document.getElementById('receiptDescription').value,
+        scans: []
+    };
+    if (rId) {
+        const idx = data.receipts.findIndex(r => r.id == rId);
+        if (idx !== -1) data.receipts[idx] = { ...data.receipts[idx], ...r };
+        alert('\u2713 Receipt updated!');
+    } else {
+        data.receipts.push({ id: Date.now(), ...r });
+        alert('\u2713 Receipt saved!');
+    }
+    saveData(data); closeModal('receiptModal'); loadReceipts();
+});
+
+// ==================== REPORTS (calculated from transactions) ====================
+function loadProfitLoss() {
+    const data = getData();
+    // Revenue sources
+    const paidInvoices = data.invoices.filter(i => i.status === 'Paid');
+    const paidAR = data.accountsReceivable.filter(a => a.status === 'Paid');
+    const arInvNums = new Set(paidAR.map(a => a.invoiceNumber));
+    const standAloneInvPaid = paidInvoices.filter(i => !arInvNums.has(i.number));
+    const totalFromAR = paidAR.reduce((s,a)=>s+a.amount,0);
+    const totalFromInv = standAloneInvPaid.reduce((s,i)=>s+i.amount,0);
+    const totalRevenue = totalFromAR + totalFromInv;
+
+    // Expense sources
+    const byCategory = {};
+    data.expenses.forEach(e => { byCategory[e.category] = (byCategory[e.category]||0) + e.amount; });
+    data.receipts.forEach(r => { byCategory['Receipts: ' + r.category] = (byCategory['Receipts: '+r.category]||0) + r.amount; });
+    data.accountsPayable.filter(a=>a.status==='Paid').forEach(a => { byCategory['AP: '+(a.category||'Other')] = (byCategory['AP: '+(a.category||'Other')]||0) + a.amount; });
+    const totalExpenses = Object.values(byCategory).reduce((s,v)=>s+v,0);
+    const net = totalRevenue - totalExpenses;
+
+    document.getElementById('mainContent').innerHTML = `
+        <div class="page-header"><div><h1 class="page-title">Profit & Loss Statement</h1><p class="page-subtitle">Calculated from all your transactions</p></div></div>
+        <div class="card">
+            <div class="report-header"><h1 class="report-title">Profit & Loss Statement</h1><p class="report-period">Based on recorded transactions as of ${new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'})}</p></div>
+            <div class="report-section">
+                <h3 style="margin-bottom:1rem;font-family:'Crimson Pro',serif;">Revenue</h3>
+                <table class="report-table"><tbody>
+                    ${paidAR.length ? `<tr><td>Collected Accounts Receivable (${paidAR.length} items)</td><td class="amount amount-positive">${fmt(totalFromAR)}</td></tr>` : ''}
+                    ${standAloneInvPaid.length ? `<tr><td>Paid Invoices (direct, ${standAloneInvPaid.length} items)</td><td class="amount amount-positive">${fmt(totalFromInv)}</td></tr>` : ''}
+                    ${!paidAR.length && !standAloneInvPaid.length ? `<tr><td style="color:var(--text-secondary);">No paid invoices or receivables yet</td><td class="amount">$0.00</td></tr>` : ''}
+                    <tr class="report-total"><td><strong>Total Revenue</strong></td><td class="amount amount-positive"><strong>${fmt(totalRevenue)}</strong></td></tr>
+                </tbody></table>
+            </div>
+            <div class="report-section">
+                <h3 style="margin-bottom:1rem;font-family:'Crimson Pro',serif;">Expenses</h3>
+                <table class="report-table"><tbody>
+                    ${Object.entries(byCategory).sort((a,b)=>b[1]-a[1]).map(([k,v]) => `<tr><td>${k}</td><td class="amount">${fmt(v)}</td></tr>`).join('')}
+                    ${!Object.keys(byCategory).length ? '<tr><td style="color:var(--text-secondary);">No expenses recorded yet</td><td class="amount">$0.00</td></tr>' : ''}
+                    <tr class="report-total"><td><strong>Total Expenses</strong></td><td class="amount amount-negative"><strong>${fmt(totalExpenses)}</strong></td></tr>
+                </tbody></table>
+            </div>
+            <table class="report-table"><tbody>
+                <tr class="report-total" style="background:linear-gradient(135deg,var(--primary-dark),var(--primary-navy));color:white;">
+                    <td><strong style="font-size:1.2rem;">NET INCOME</strong></td>
+                    <td class="amount"><strong style="font-size:1.2rem;color:${net>=0?'#90ee90':'#ffaaaa'};">${fmt(net)}</strong></td>
+                </tr>
+            </tbody></table>
+            <div class="alert ${net>=0?'alert-success':'alert-danger'}" style="margin-top:1.5rem;">
+                <strong>${net>=0?'Profitable Period':'Operating at a Loss'}</strong> — 
+                Net margin: ${totalRevenue > 0 ? (net/totalRevenue*100).toFixed(1) : 0}%
+                ${net < 0 ? '<br>Review your expense categories and outstanding receivables to improve profitability.' : ''}
+            </div>
+        </div>`;
+}
+
+function loadBalanceSheet() {
+    const data = getData();
+    const cashBalance = calcCashBalance(data);
+    const totalAR = calcOutstandingAR(data);
+    const totalAP = calcOutstandingAP(data);
+    const equityBase = 100000;
+    const retainedEarnings = calcRevenue(data) - calcTotalExpenses(data);
+    const totalEquity = equityBase + retainedEarnings;
+    const totalAssets = cashBalance + totalAR + 35000 + 75000; // cash + AR + inventory + equipment
+    const totalLiab = totalAP + 40000; // AP + loans
+    const totalLE = totalLiab + totalEquity;
+
+    document.getElementById('mainContent').innerHTML = `
+        <div class="page-header"><div><h1 class="page-title">Balance Sheet</h1><p class="page-subtitle">Assets, liabilities, and equity from transaction data</p></div></div>
+        <div class="card">
+            <div class="report-header"><h1 class="report-title">Balance Sheet</h1><p class="report-period">As of ${new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'})}</p></div>
+            <div class="report-section"><h3 style="margin-bottom:1rem;font-family:'Crimson Pro',serif;">Assets</h3>
+                <table class="report-table"><tbody>
+                    <tr><td>Cash & Bank (calculated from transactions)</td><td class="amount">${fmt(cashBalance)}</td></tr>
+                    <tr><td>Accounts Receivable (outstanding)</td><td class="amount">${fmt(totalAR)}</td></tr>
+                    <tr><td>Inventory</td><td class="amount">$35,000.00</td></tr>
+                    <tr><td>Equipment</td><td class="amount">$75,000.00</td></tr>
+                    <tr class="report-total"><td><strong>Total Assets</strong></td><td class="amount"><strong>${fmt(totalAssets)}</strong></td></tr>
+                </tbody></table></div>
+            <div class="report-section"><h3 style="margin-bottom:1rem;font-family:'Crimson Pro',serif;">Liabilities</h3>
+                <table class="report-table"><tbody>
+                    <tr><td>Accounts Payable (outstanding)</td><td class="amount">${fmt(totalAP)}</td></tr>
+                    <tr><td>Loans Payable</td><td class="amount">$40,000.00</td></tr>
+                    <tr class="report-total"><td><strong>Total Liabilities</strong></td><td class="amount"><strong>${fmt(totalLiab)}</strong></td></tr>
+                </tbody></table></div>
+            <div class="report-section"><h3 style="margin-bottom:1rem;font-family:'Crimson Pro',serif;">Equity</h3>
+                <table class="report-table"><tbody>
+                    <tr><td>Owner's Equity (base)</td><td class="amount">${fmt(equityBase)}</td></tr>
+                    <tr><td>Retained Earnings (from transactions)</td><td class="amount ${retainedEarnings>=0?'amount-positive':'amount-negative'}">${fmt(retainedEarnings)}</td></tr>
+                    <tr class="report-total"><td><strong>Total Equity</strong></td><td class="amount"><strong>${fmt(totalEquity)}</strong></td></tr>
+                </tbody></table></div>
+            <table class="report-table"><tbody>
+                <tr class="report-total" style="background:linear-gradient(135deg,var(--primary-dark),var(--primary-navy));color:white;">
+                    <td><strong style="font-size:1.2rem;">TOTAL LIABILITIES & EQUITY</strong></td>
+                    <td class="amount"><strong style="font-size:1.2rem;">${fmt(totalLE)}</strong></td>
+                </tr>
+            </tbody></table>
+            <div class="alert alert-info" style="margin-top:1rem;font-size:0.85rem;">
+                <strong>Note:</strong> Cash balance is dynamically calculated from collected receivables minus all expenses, receipts, and paid payables. Balance sheet balances when Assets = Liabilities + Equity.
+            </div>
+        </div>`;
+}
+
+function loadCashFlow() {
+    const data = getData();
+    // Operating: cash received from customers (paid AR + paid invoices not in AR), cash paid for expenses + receipts + paid AP
+    const cashIn = calcRevenue(data);
+    const expCash = data.expenses.reduce((s,e)=>s+e.amount,0);
+    const receiptCash = data.receipts.reduce((s,r)=>s+r.amount,0);
+    const paidAPCash = data.accountsPayable.filter(a=>a.status==='Paid').reduce((s,a)=>s+a.amount,0);
+    const netOperating = cashIn - expCash - receiptCash - paidAPCash;
+    const outstandingAR = calcOutstandingAR(data);
+    const outstandingAP = calcOutstandingAP(data);
+
+    document.getElementById('mainContent').innerHTML = `
+        <div class="page-header"><div><h1 class="page-title">Cash Flow Statement</h1><p class="page-subtitle">Actual cash movements from your transactions</p></div></div>
+        <div class="card">
+            <div class="report-header"><h1 class="report-title">Cash Flow Statement</h1><p class="report-period">Period ending ${new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'})}</p></div>
+            <div class="report-section"><h3 style="margin-bottom:1rem;font-family:'Crimson Pro',serif;">Operating Activities</h3>
+                <table class="report-table"><tbody>
+                    <tr><td>Cash received from customers (paid invoices & AR)</td><td class="amount amount-positive">${fmt(cashIn)}</td></tr>
+                    <tr><td>Cash paid — Expenses (${data.expenses.length} records)</td><td class="amount amount-negative">(${fmt(expCash)})</td></tr>
+                    <tr><td>Cash paid — Receipts (${data.receipts.length} records)</td><td class="amount amount-negative">(${fmt(receiptCash)})</td></tr>
+                    <tr><td>Cash paid — Accounts Payable (paid bills)</td><td class="amount amount-negative">(${fmt(paidAPCash)})</td></tr>
+                    <tr class="report-total"><td><strong>Net Cash from Operating Activities</strong></td>
+                        <td class="amount ${netOperating>=0?'amount-positive':'amount-negative'}"><strong>${netOperating<0?'(':''}${fmt(Math.abs(netOperating))}${netOperating<0?')':''}</strong></td></tr>
+                </tbody></table></div>
+            <div class="report-section"><h3 style="margin-bottom:1rem;font-family:'Crimson Pro',serif;">Pending Collections & Payments</h3>
+                <table class="report-table"><tbody>
+                    <tr><td>Accounts Receivable outstanding (pending/overdue)</td><td class="amount" style="color:var(--warning);">${fmt(outstandingAR)}</td></tr>
+                    <tr><td>Accounts Payable outstanding (pending/overdue)</td><td class="amount" style="color:var(--danger);">(${fmt(outstandingAP)})</td></tr>
+                    <tr class="report-total"><td><strong>Net Working Capital Position</strong></td>
+                        <td class="amount ${outstandingAR-outstandingAP>=0?'amount-positive':'amount-negative'}"><strong>${fmt(outstandingAR - outstandingAP)}</strong></td></tr>
+                </tbody></table></div>
+            <table class="report-table"><tbody>
+                <tr class="report-total" style="background:linear-gradient(135deg,var(--primary-dark),var(--primary-navy));color:white;">
+                    <td><strong style="font-size:1.2rem;">ESTIMATED NET CASH POSITION</strong></td>
+                    <td class="amount"><strong style="font-size:1.2rem;">${fmt(calcCashBalance(data))}</strong></td>
+                </tr>
+            </tbody></table>
+            <div class="alert alert-info" style="margin-top:1rem;font-size:0.85rem;">
+                <strong>Live Calculation:</strong> These figures update automatically as you add, edit, or delete transactions. Mark AR as "Paid" and AP as "Paid" to see the true cash flow reflected here.
+            </div>
+        </div>`;
+}
+
+// ==================== ROLE PERMISSIONS ====================
+function loadRolePermissions() {
+    if (currentUser.role !== 'Administrator') {
+        document.getElementById('mainContent').innerHTML = '<div class="card"><p>Administrators only.</p></div>';
+        return;
+    }
+    const data = getData();
+    const perms = data.rolePermissions || [];
+    document.getElementById('mainContent').innerHTML = `
+        <div class="page-header">
+            <div><h1 class="page-title">&#128274; Role Permissions</h1><p class="page-subtitle">Define what each role can access and perform in Physio-Book</p></div>
+            <button class="btn btn-success" onclick="openRolePermModal()">+ Add Permission</button>
+        </div>
+        <div class="alert alert-info" style="margin-bottom:1.5rem;">
+            <strong>How it works:</strong> Each permission row defines a capability. Checkboxes control which roles have access. Changes are saved immediately and reflected throughout the application on next login.
+        </div>
+        <div class="card">
+            <h2 class="card-title">Permission Matrix</h2>
+            <div class="table-container">
+                <table class="perm-matrix">
+                    <thead><tr><th>Permission</th><th>Description</th><th style="text-align:center;">Administrator</th><th style="text-align:center;">Accountant</th><th style="text-align:center;">Viewer</th><th>Actions</th></tr></thead>
+                    <tbody>${perms.map(p => `<tr>
+                        <td><strong>${p.name}</strong></td>
+                        <td style="color:var(--text-secondary);font-size:0.85rem;">${p.description}</td>
+                        <td style="text-align:center;">
+                            <input type="checkbox" ${p.admin?'checked':''} ${p.id<=2?'disabled title="Cannot change admin core access"':''} onchange="togglePerm(${p.id},'admin',this.checked)" style="width:18px;height:18px;cursor:pointer;">
+                        </td>
+                        <td style="text-align:center;">
+                            <input type="checkbox" ${p.accountant?'checked':''} onchange="togglePerm(${p.id},'accountant',this.checked)" style="width:18px;height:18px;cursor:pointer;">
+                        </td>
+                        <td style="text-align:center;">
+                            <input type="checkbox" ${p.viewer?'checked':''} onchange="togglePerm(${p.id},'viewer',this.checked)" style="width:18px;height:18px;cursor:pointer;">
+                        </td>
+                        <td style="white-space:nowrap;">
+                            <button class="btn btn-sm btn-secondary" onclick="editPerm(${p.id})">&#9999; Edit</button>
+                            ${p.id > 10 ? `<button class="btn btn-sm btn-danger" onclick="deletePerm(${p.id})" style="margin-left:0.25rem;">&#128465;</button>` : '<span style="color:var(--text-secondary);font-size:0.8rem;margin-left:0.5rem;">System</span>'}
+                        </td>
+                    </tr>`).join('')}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="card">
+            <h2 class="card-title">Role Summary</h2>
+            <div class="grid-3col">
+                ${['Administrator','Accountant','Viewer'].map(role => {
+                    const count = perms.filter(p => p[role.toLowerCase()]).length;
+                    const color = role==='Administrator'?'var(--danger)':role==='Accountant'?'var(--warning)':'var(--info)';
+                    return `<div style="padding:1.5rem;border:2px solid ${color};border-radius:10px;text-align:center;">
+                        <div style="font-size:1.5rem;font-weight:700;color:${color};margin-bottom:0.5rem;">${role}</div>
+                        <div style="font-size:2.5rem;font-weight:700;">${count}</div>
+                        <div style="color:var(--text-secondary);font-size:0.9rem;">of ${perms.length} permissions</div>
+                    </div>`;
+                }).join('')}
+            </div>
+        </div>`;
+}
+
+function togglePerm(id, role, value) {
+    const data = getData();
+    const idx = data.rolePermissions.findIndex(p => p.id === id);
+    if (idx !== -1) {
+        data.rolePermissions[idx][role] = value;
+        saveData(data);
+    }
+}
+
+function openRolePermModal() {
+    document.getElementById('rolePermForm').reset();
+    document.getElementById('editPermId').value = '';
+    document.getElementById('rolePermModalTitle').textContent = 'Add Permission';
+    document.getElementById('rolePermSubmitBtn').textContent = 'Add Permission';
+    document.getElementById('permAdmin').checked = true;
+    document.getElementById('permAccountant').checked = false;
+    document.getElementById('permViewer').checked = false;
+    document.getElementById('rolePermModal').style.display = 'flex';
+}
+
+function editPerm(id) {
+    const p = getData().rolePermissions.find(p => p.id === id);
+    if (!p) return;
+    document.getElementById('rolePermModalTitle').textContent = 'Edit Permission';
+    document.getElementById('rolePermSubmitBtn').textContent = 'Save Changes';
+    document.getElementById('editPermId').value = p.id;
+    document.getElementById('permName').value = p.name;
+    document.getElementById('permDescription').value = p.description;
+    document.getElementById('permAdmin').checked = p.admin;
+    document.getElementById('permAccountant').checked = p.accountant;
+    document.getElementById('permViewer').checked = p.viewer;
+    document.getElementById('rolePermModal').style.display = 'flex';
+}
+
+function deletePerm(id) {
+    const data = getData();
+    const p = data.rolePermissions.find(p => p.id === id);
+    if (!p) return;
+    if (confirm(`Delete permission "${p.name}"?`)) {
+        data.rolePermissions = data.rolePermissions.filter(p => p.id !== id);
+        saveData(data); loadRolePermissions();
+    }
+}
+
+document.getElementById('rolePermForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const data = getData();
+    const permId = document.getElementById('editPermId').value;
+    const perm = {
+        name: document.getElementById('permName').value,
+        description: document.getElementById('permDescription').value,
+        admin: document.getElementById('permAdmin').checked,
+        accountant: document.getElementById('permAccountant').checked,
+        viewer: document.getElementById('permViewer').checked
+    };
+    if (permId) {
+        const idx = data.rolePermissions.findIndex(p => p.id == permId);
+        if (idx !== -1) data.rolePermissions[idx] = { ...data.rolePermissions[idx], ...perm };
+        alert('\u2713 Permission updated!');
+    } else {
+        data.rolePermissions.push({ id: Date.now(), ...perm });
+        alert('\u2713 Permission added!');
+    }
+    saveData(data); closeModal('rolePermModal'); loadRolePermissions();
+});
+
+// ==================== CONTACTS ====================
+function loadContacts() {
+    const data = getData();
+    const e = canEdit();
+    document.getElementById('mainContent').innerHTML = `
+        <div class="page-header"><div><h1 class="page-title">&#128100; Contacts</h1><p class="page-subtitle">Manage customers, vendors, and business contacts</p></div>
+        ${e ? '<button class="btn btn-success" onclick="openContactModal()">+ Add Contact</button>' : ''}</div>
+        <div class="stats-grid">
+            <div class="stat-card"><div class="stat-label">Total Contacts</div><div class="stat-value">${data.contacts.length}</div></div>
+            <div class="stat-card"><div class="stat-label">Customers</div><div class="stat-value">${data.contacts.filter(c=>c.type==='Customer'||c.type==='Both').length}</div></div>
+            <div class="stat-card"><div class="stat-label">Vendors</div><div class="stat-value">${data.contacts.filter(c=>c.type==='Vendor'||c.type==='Both').length}</div></div>
+        </div>
+        <div class="card"><h2 class="card-title">All Contacts</h2>
+            <div class="table-container"><table>
+                <thead><tr><th>Name</th><th>Company</th><th>Type</th><th>Email</th><th>Phone</th>${e?'<th>Actions</th>':''}</tr></thead>
+                <tbody>${data.contacts.length === 0 ? '<tr><td colspan="6" style="text-align:center;padding:2rem;">No contacts yet.</td></tr>' :
+                data.contacts.map(c => `<tr>
+                    <td><strong>${c.name}</strong></td><td>${c.company||'—'}</td>
+                    <td><span class="badge badge-${getBadgeColor(c.type)}">${c.type}</span></td>
+                    <td><a href="mailto:${c.email}" style="color:var(--primary-navy);">${c.email}</a></td><td>${c.phone||'—'}</td>
+                    ${e ? `<td class="tbl-actions">
+                        <button class="btn btn-sm btn-secondary" onclick="editContact(${c.id})">&#9999; Edit</button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteContact(${c.id})">&#128465; Delete</button>
+                    </td>` : ''}</tr>`).join('')}
+                </tbody>
+            </table></div></div>`;
+}
+
+function openContactModal() {
+    document.getElementById('contactForm').reset();
+    document.getElementById('editContactId').value = '';
+    document.getElementById('contactModalTitle').textContent = 'Add Contact';
+    document.getElementById('contactSubmitBtn').textContent = 'Add Contact';
+    document.getElementById('contactModal').style.display = 'flex';
+}
+
+function editContact(id) {
+    const c = getData().contacts.find(c => c.id === id);
+    if (!c) return;
+    document.getElementById('contactModalTitle').textContent = 'Edit Contact';
+    document.getElementById('contactSubmitBtn').textContent = 'Save Changes';
+    document.getElementById('editContactId').value = c.id;
+    document.getElementById('contactName').value = c.name;
+    document.getElementById('contactCompany').value = c.company || '';
+    document.getElementById('contactType').value = c.type;
+    document.getElementById('contactEmail').value = c.email;
+    document.getElementById('contactPhone').value = c.phone || '';
+    document.getElementById('contactMobile').value = c.mobile || '';
+    document.getElementById('contactAddress').value = c.address || '';
+    document.getElementById('contactNotes').value = c.notes || '';
+    document.getElementById('contactModal').style.display = 'flex';
+}
+
+function deleteContact(id) {
+    const data = getData();
+    const c = data.contacts.find(c => c.id === id);
+    if (!c) return;
+    if (confirm(`Delete contact "${c.name}"?`)) {
+        data.contacts = data.contacts.filter(c => c.id !== id);
+        saveData(data); loadContacts();
+    }
+}
+
+document.getElementById('contactForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const data = getData();
+    const cId = document.getElementById('editContactId').value;
+    const c = {
+        name: document.getElementById('contactName').value,
+        company: document.getElementById('contactCompany').value,
+        type: document.getElementById('contactType').value,
+        email: document.getElementById('contactEmail').value,
+        phone: document.getElementById('contactPhone').value,
+        mobile: document.getElementById('contactMobile').value,
+        address: document.getElementById('contactAddress').value,
+        notes: document.getElementById('contactNotes').value
+    };
+    if (cId) {
+        const idx = data.contacts.findIndex(c => c.id == cId);
+        if (idx !== -1) data.contacts[idx] = { ...data.contacts[idx], ...c };
+    } else { data.contacts.push({ id: Date.now(), ...c }); }
+    saveData(data); closeModal('contactModal'); loadContacts();
+});
+
+// ==================== CALENDAR ====================
+let currentCalendarDate = new Date();
+function loadCalendar() {
+    const data = getData();
+    const month = currentCalendarDate.getMonth(), year = currentCalendarDate.getFullYear();
+    const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    document.getElementById('mainContent').innerHTML = `
+        <div class="page-header"><div><h1 class="page-title">&#128197; Calendar</h1><p class="page-subtitle">Manage events and payment deadlines</p></div>
+        ${canEdit() ? '<button class="btn btn-success" onclick="openCalendarEventModal()">+ Add Event</button>' : ''}</div>
+        <div class="card">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;">
+                <button class="btn btn-secondary" onclick="prevMonth()">&#8249; Prev</button>
+                <h2 style="font-family:'Crimson Pro',serif;">${monthNames[month]} ${year}</h2>
+                <button class="btn btn-secondary" onclick="nextMonth()">Next &#8250;</button>
+            </div>
+            ${renderCalendarGrid(month, year)}
+        </div>
+        <div class="card"><h2 class="card-title">Upcoming Events (Next 14 Days)</h2>
+            <div id="upcomingEvents">${renderUpcomingEvents()}</div>
+        </div>`;
+}
+
+function renderCalendarGrid(month, year) {
+    const data = getData();
+    const first = new Date(year, month, 1).getDay();
+    const days = new Date(year, month+1, 0).getDate();
+    const today = new Date().toISOString().split('T')[0];
+    let html = '<div class="calendar-grid">';
+    ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].forEach(d => { html += `<div class="calendar-day-header">${d}</div>`; });
+    const prev = new Date(year, month, 0).getDate();
+    for (let i = first-1; i >= 0; i--) html += `<div class="calendar-day other-month"><div class="calendar-day-number">${prev-i}</div></div>`;
+    for (let d = 1; d <= days; d++) {
+        const ds = new Date(year, month, d).toISOString().split('T')[0];
+        const isToday = ds === today;
+        const evs = data.calendarEvents.filter(e => e.date === ds);
+        html += `<div class="calendar-day ${isToday?'today':''}" onclick="openCalendarEventModal('${ds}')">
+            <div class="calendar-day-number">${d}</div>
+            <div class="calendar-events">${evs.slice(0,3).map(ev => `<div class="calendar-event-item event-${ev.type}" onclick="event.stopPropagation();">${ev.title}</div>`).join('')}</div>
+        </div>`;
+    }
+    const rem = 42 - (first + days);
+    for (let d = 1; d <= rem; d++) html += `<div class="calendar-day other-month"><div class="calendar-day-number">${d}</div></div>`;
+    return html + '</div>';
+}
+
+function renderUpcomingEvents() {
+    const data = getData();
+    const now = new Date();
+    const future = new Date(); future.setDate(now.getDate() + 14);
+    const evs = data.calendarEvents.filter(e => { const d = new Date(e.date); return d >= now && d <= future; }).sort((a,b) => new Date(a.date) - new Date(b.date));
+    if (!evs.length) return '<p style="text-align:center;color:var(--text-secondary);padding:1rem;">No upcoming events in the next 14 days.</p>';
+    return evs.map(ev => `<div class="upcoming-event event-${ev.type}" style="margin-bottom:0.75rem;">
+        <strong>${ev.title}</strong><br>
+        <span style="font-size:0.85rem;color:var(--text-secondary);">${ev.date} at ${ev.time} &mdash; <span style="text-transform:capitalize;">${ev.type}</span></span>
+        ${ev.description ? `<br><span style="font-size:0.85rem;">${ev.description}</span>` : ''}
+    </div>`).join('');
+}
+
+function prevMonth() { currentCalendarDate.setMonth(currentCalendarDate.getMonth()-1); loadCalendar(); }
+function nextMonth() { currentCalendarDate.setMonth(currentCalendarDate.getMonth()+1); loadCalendar(); }
+
+function openCalendarEventModal(presetDate = null) {
+    document.getElementById('calendarEventForm').reset();
+    document.getElementById('eventId').value = '';
+    document.getElementById('eventModalTitle').textContent = 'Create Event';
+    document.getElementById('eventDate').value = presetDate || today();
+    document.getElementById('eventTime').value = '09:00';
+    document.getElementById('calendarEventModal').style.display = 'flex';
+}
+
+function updateEventTypeFields() {
+    const t = document.getElementById('eventType').value;
+    document.getElementById('eventDurationGroup').style.display = t === 'payment' ? 'none' : 'block';
+    document.getElementById('eventAmountGroup').style.display = t === 'payment' ? 'block' : 'none';
+}
+
+document.getElementById('calendarEventForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const data = getData();
+    const eId = document.getElementById('eventId').value;
+    const ev = {
+        type: document.getElementById('eventType').value,
+        title: document.getElementById('eventTitle').value,
+        date: document.getElementById('eventDate').value,
+        time: document.getElementById('eventTime').value,
+        description: document.getElementById('eventDescription').value
+    };
+    if (eId) {
+        const idx = data.calendarEvents.findIndex(e => e.id == eId);
+        if (idx !== -1) data.calendarEvents[idx] = { ...data.calendarEvents[idx], ...ev };
+    } else { data.calendarEvents.push({ id: Date.now(), ...ev }); }
+    saveData(data); closeModal('calendarEventModal'); loadCalendar();
+});
+
+// ==================== USER MANAGEMENT ====================
+function loadUsers() {
+    if (currentUser.role !== 'Administrator') {
+        document.getElementById('mainContent').innerHTML = '<div class="card"><p>Administrators only.</p></div>';
+        return;
+    }
+    const data = getData();
+    document.getElementById('mainContent').innerHTML = `
+        <div class="page-header"><div><h1 class="page-title">&#128101; User Management</h1><p class="page-subtitle">Manage system users and access</p></div>
+        <button class="btn btn-success" onclick="openUserModal()">+ Create User</button></div>
+        <div class="card"><h2 class="card-title">All Users</h2>
+            <div class="table-container"><table>
+                <thead><tr><th>Name</th><th>Username</th><th>Role</th><th>MFA</th><th>Actions</th></tr></thead>
+                <tbody>${data.users.map(u => `<tr>
+                    <td><strong>${u.name}</strong></td><td>${u.username}</td>
+                    <td><span class="badge badge-${u.role==='Administrator'?'danger':u.role==='Accountant'?'warning':'info'}">${u.role}</span></td>
+                    <td>${u.mfaEnabled?'<span class="badge badge-success">&#10003; On</span>':'<span class="badge badge-warning">Off</span>'}</td>
+                    <td style="white-space:nowrap;">
+                        <button class="btn btn-sm btn-secondary" onclick="openEditRoleModal(${u.id})" ${u.id===currentUser.id?'disabled':''}>Change Role</button>
+                        ${u.id !== currentUser.id ? `<button class="btn btn-sm btn-danger" onclick="deleteUser(${u.id})">&#128465; Delete</button>` : ''}
+                    </td></tr>`).join('')}
+                </tbody>
+            </table></div></div>
+        <div class="card"><h2 class="card-title">Role Access Overview</h2>
+            <table><thead><tr><th>Capability</th><th>Administrator</th><th>Accountant</th><th>Viewer</th></tr></thead>
+            <tbody>
+                <tr><td>View all data & reports</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td></tr>
+                <tr><td>Create / Edit Transactions</td><td>&#10003;</td><td>&#10003;</td><td>&#10007;</td></tr>
+                <tr><td>Delete records</td><td>&#10003;</td><td>&#10003;</td><td>&#10007;</td></tr>
+                <tr><td>Manage Contacts</td><td>&#10003;</td><td>&#10003;</td><td>&#10007;</td></tr>
+                <tr><td>User Management</td><td>&#10003;</td><td>&#10007;</td><td>&#10007;</td></tr>
+                <tr><td>Role Permissions</td><td>&#10003;</td><td>&#10007;</td><td>&#10007;</td></tr>
+            </tbody></table>
+        </div>`;
+}
+
+function openUserModal() {
+    document.getElementById('userForm').reset();
+    document.getElementById('userModalTitle').textContent = 'Create New User';
+    document.getElementById('editUserId').value = '';
+    document.getElementById('userPassword').required = true;
+    document.getElementById('userModal').style.display = 'flex';
+}
+
+function openEditRoleModal(id) {
+    const u = getData().users.find(u => u.id === id);
+    if (!u) return;
+    document.getElementById('editRoleUserId').value = u.id;
+    document.getElementById('editRoleUserName').value = u.name;
+    document.getElementById('editRoleNewRole').value = u.role;
+    document.getElementById('editRoleModal').style.display = 'flex';
+}
+
+function deleteUser(id) {
+    const data = getData();
+    const u = data.users.find(u => u.id === id);
+    if (!u) return;
+    if (id === currentUser.id) { alert('Cannot delete your own account.'); return; }
+    if (u.role === 'Administrator' && data.users.filter(u => u.role === 'Administrator').length <= 1) { alert('Cannot delete the last administrator.'); return; }
+    if (confirm(`Delete user "${u.name}"?`)) {
+        data.users = data.users.filter(u => u.id !== id);
+        saveData(data); loadUsers();
+    }
+}
+
+document.getElementById('userForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const data = getData();
+    const uId = document.getElementById('editUserId').value;
+    const username = document.getElementById('userUsername').value.toLowerCase().trim();
+    const name = document.getElementById('userName').value.trim();
+    const password = document.getElementById('userPassword').value;
+    const role = document.getElementById('userRole').value;
+    if (data.users.find(u => u.username === username && u.id != uId)) { alert('Username already exists.'); return; }
+    if (uId) {
+        const idx = data.users.findIndex(u => u.id == uId);
+        if (idx !== -1) { data.users[idx].name = name; data.users[idx].username = username; if (password) data.users[idx].password = password; data.users[idx].role = role; }
+    } else {
+        data.users.push({ id: Date.now(), username, password, name, role, mfaEnabled: false, mfaSecret: null, backupCodes: [] });
+        alert(`\u2713 User "${name}" created as ${role}.`);
+    }
+    saveData(data); closeModal('userModal'); loadUsers();
+});
+
+document.getElementById('editRoleForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const data = getData();
+    const id = parseInt(document.getElementById('editRoleUserId').value);
+    const newRole = document.getElementById('editRoleNewRole').value;
+    const idx = data.users.findIndex(u => u.id === id);
+    if (idx !== -1) { data.users[idx].role = newRole; saveData(data); closeModal('editRoleModal'); loadUsers(); }
+});
+
+// ==================== SECURITY SETTINGS ====================
+function loadSecuritySettings() {
+    document.getElementById('mainContent').innerHTML = `
+        <div class="page-header"><div><h1 class="page-title">Security Settings</h1><p class="page-subtitle">Manage your account security</p></div></div>
+        <div class="card"><h2 class="card-title">Account Information</h2>
+            <table style="width:100%;"><tbody>
+                <tr><td style="border:none;padding:0.75rem 0;"><strong>Name:</strong></td><td style="border:none;padding:0.75rem 0;">${currentUser.name}</td></tr>
+                <tr><td style="border:none;padding:0.75rem 0;"><strong>Username:</strong></td><td style="border:none;padding:0.75rem 0;">${currentUser.username}</td></tr>
+                <tr><td style="border:none;padding:0.75rem 0;"><strong>Role:</strong></td><td style="border:none;padding:0.75rem 0;"><span class="badge badge-${currentUser.role==='Administrator'?'danger':currentUser.role==='Accountant'?'warning':'info'}">${currentUser.role}</span></td></tr>
+            </tbody></table>
+        </div>
+        <div class="card"><h2 class="card-title">Two-Factor Authentication</h2>
+            ${currentUser.mfaEnabled ? `
+                <div class="alert alert-success"><strong>&#10003; Two-Factor Authentication is Enabled</strong></div>
+                <p style="margin-bottom:1rem;">You have <strong>${currentUser.backupCodes.length}</strong> backup codes remaining.</p>
+                <button class="btn btn-danger" onclick="disableMfa()">Disable Two-Factor Authentication</button>
+            ` : `
+                <div class="alert alert-warning"><strong>Two-Factor Authentication is Disabled</strong><br>Enable 2FA for additional account security.</div>
+                <button class="btn btn-success" onclick="logout();alert('Please log in again to set up 2FA.')">Enable Two-Factor Authentication</button>
+            `}
+        </div>`;
+}
+
+function disableMfa() {
+    if (confirm('Disable two-factor authentication? This reduces account security.')) {
+        const data = getData();
+        const idx = data.users.findIndex(u => u.id === currentUser.id);
+        if (idx !== -1) { data.users[idx].mfaEnabled = false; data.users[idx].mfaSecret = null; data.users[idx].backupCodes = []; saveData(data); currentUser = data.users[idx]; loadSecuritySettings(); }
+    }
+}
+
+// ==================== UTILITIES ====================
+function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+window.onclick = function(e) { if (e.target.classList.contains('modal')) e.target.style.display = 'none'; };
+window.addEventListener('resize', function() { if (window.innerWidth > 1024) closeSidebar(); });
+
+initializeData();
+</script>
+</body>
+</html>
